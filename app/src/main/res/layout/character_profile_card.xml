@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="70dp"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"
+    android:layout_marginBottom="80dp"
+    android:elevation="3dp"
+    android:background="@drawable/card_shape">
+
+    <com.example.abnervictor.tkdic.MyFontTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="25dp"
+        android:layout_marginStart="25dp"
+        android:text="蜀"
+        android:textSize="26sp"
+        android:textColor="@color/Black"
+        android:textAlignment="center"
+        android:id="@+id/loyal_to"
+        />
+
+    <com.example.abnervictor.tkdic.CircularImageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="130dp"
+        android:layout_height="130dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="60dp"
+        android:src="@drawable/zhuge"
+        android:id="@+id/profile_pic"
+        />
+
+    <com.example.abnervictor.tkdic.MyFontTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_pic"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:id="@+id/profile_name"
+        android:text="诸葛亮"
+        android:textSize="22sp"
+        android:textColor="@color/Black"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_name"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="10dp"
+        android:text="181年-234年10月8日，字孔明，号卧龙（也作伏龙），徐州琅琊阳都（今山东临沂市沂南县）人[2]  ，三国时期蜀汉丞相，杰出的政治家、军事家、外交家、文学家、书法家、发明家。"
+        android:id="@+id/profile_infomation"
+        />
+
+    <ImageView
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginBottom="25dp"
+        android:layout_marginStart="25dp"
+        android:src="@drawable/mark"
+        android:id="@+id/mark"
+        />
+
+    <ImageView
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="27dp"
+        android:layout_marginEnd="27dp"
+        android:src="@drawable/edit"
+        android:id="@+id/edit"
+        />
+</android.support.constraint.ConstraintLayout>

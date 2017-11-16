@@ -6,6 +6,10 @@
     android:layout_height="match_parent"
     tools:context="com.example.abnervictor.tkdic.MainActivity">
 
+    <include
+        android:id="@+id/profile_card"
+        layout="@layout/country_card" />
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -24,6 +28,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/navigation_bar_folder"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
+            android:src="@drawable/home_color"
             />
         <ImageView
             android:id="@+id/navigation_bar_folder"
@@ -33,6 +38,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@id/navigation_bar_home"
             app:layout_constraintRight_toLeftOf="@id/navigation_bar_privatecollect"
+            android:src="@drawable/folder"
             />
         <ImageView
             android:id="@+id/navigation_bar_privatecollect"
@@ -43,6 +49,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@id/navigation_bar_folder"
             app:layout_constraintRight_toRightOf="parent"
+            android:src="@drawable/privatecollect"
             />
     </android.support.constraint.ConstraintLayout>
 
@@ -52,7 +59,7 @@
         android:layout_height="30dp"
         android:elevation="0dp"
         app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        android:translationY="20dp"
+        android:translationY="25dp"
         android:background="@drawable/upward_shadow" />
 
 
