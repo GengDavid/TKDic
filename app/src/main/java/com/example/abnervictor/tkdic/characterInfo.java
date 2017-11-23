@@ -18,21 +18,27 @@ public class characterInfo extends AppCompatActivity{
     public boolean marked;//已收藏为true
     public boolean editable;//可编辑为true
 
-    public characterInfo(String profile_name){
+    public characterInfo(String profile_name,
+                         String loyal_to,
+                         Bitmap profile_pic,
+                         boolean marked,
+                         boolean editable,
+                         String story,
+                         String nativeplace,
+                         String birthday) {
         this.profile_name = profile_name;
-        loyal_to = "蜀";//默认所属
-        profile_pic = null;//默认没有头像
-        marked = false;//默认未收藏
-        editable = false;//默认不可编辑
-        getData();
+        this.loyal_to = loyal_to;//默认所属
+        this.profile_pic = profile_pic;//默认没有头像
+        this.marked = marked;//默认未收藏
+        this.editable = editable;//默认不可编辑
+        this.story = story;
+        this.birthday = birthday;
+        this.nativeplace = nativeplace;
     }
     public void setPic(Bitmap bm){
         if (profile_pic == null){
             profile_pic = bm;
         }
-    }
-    private void getData(){
-        //从数据库中获取剩下的内容，初始化人物数据，
     }
 
     public void reverseMark(){

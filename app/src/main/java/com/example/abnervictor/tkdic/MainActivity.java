@@ -1,6 +1,8 @@
 package com.example.abnervictor.tkdic;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -59,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private List<String> characterID;//用于储存RecyclerView中
 
     //for country_card
-    private List<countryInfo> Cdata = new ArrayList<>();//后面不需要这种东西
     private List<Map<String,Object>> countryListitems = new ArrayList<>();
     private RecyclerView countryRecyclerView;
     private RecyclerViewAdapter<Map<String, Object>> countryAdapter;
@@ -88,12 +89,16 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap defaultPic;
 
+    private DataManager dataManager;
+    private SQLiteDatabase db;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initDataBase();
         findView();
         InitRecyclerView();
         SetNavigationBarListener();
@@ -101,6 +106,11 @@ public class MainActivity extends AppCompatActivity {
         SetProfileCardListener();//人物详情卡片的监听器
         setVisibilty(1);
 
+    }
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
     }
 
     private void findView(){
@@ -171,24 +181,25 @@ public class MainActivity extends AppCompatActivity {
     }//切换各视图的可见情况
 
     private void SetCountryCardRecyclerView(){
-        //初始化国家List
-        Cdata.add(new countryInfo("蜀"));
-        Cdata.add(new countryInfo("吴"));
-        Cdata.add(new countryInfo("魏"));
-        Cdata.add(new countryInfo("他"));
-        //初始化国家显示(recyclerview)列表
-        for (countryInfo c : Cdata) {
-            Map<String, Object> listitem = new LinkedHashMap<>();
-            listitem.put("countryName", c.countryName);
-            //more to initial
-            countryListitems.add(listitem);
+        Cursor countries = db.rawQuery("select * from country",null);
+        if (countries.moveToFirst()) {
+            do {
+                Map<String, Object> listitem = new LinkedHashMap<>();
+                listitem.put("countryName", countries.getString(countries.getColumnIndex("countryName")));
+                listitem.put("year", countries.getString(countries.getColumnIndex("year")));
+                listitem.put("leader", countries.getString(countries.getColumnIndex("leader")));
+                listitem.put("nativeplace", countries.getString(countries.getColumnIndex("nativeplace")));
+                listitem.put("knownCtr", countries.getString(countries.getColumnIndex("knownCtr")));
+                listitem.put("story", countries.getString(countries.getColumnIndex("story")));
+                countryListitems.add(listitem);
+            } while (countries.moveToNext());
         }
+        countries.close();
         countryRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL));
         //国家recyclerview适配器初始化，绑定数据以及设置点击监听，点击监听具体为跳转显示人物recyclerview，并根据点击国家给其列表刷新添加相应的人物
         countryAdapter = new RecyclerViewAdapter<Map<String, Object>>(this, R.layout.country_card, countryListitems) {
             @Override
             public void convert(ViewHolder holder, Map<String, Object> Map) {
-
                 MyFontTextView countryName = holder.getView(R.id.countryName);
                 TextView year = holder.getView(R.id.year);//建国～亡国
                 TextView leader = holder.getView(R.id.leader);//国君
@@ -196,11 +207,12 @@ public class MainActivity extends AppCompatActivity {
                 TextView knownCtr = holder.getView(R.id.knownCtr);//知名人物
                 TextView story = holder.getView(R.id.story);//历史
                 //findView
-
-                String S = Map.get("countryName").toString();
-                //more to initial
-
-                countryName.setText(S);
+                countryName.setText(Map.get("countryName").toString());
+                year.setText(Map.get("year").toString());
+                leader.setText(Map.get("leader").toString());
+                nativeplace.setText(Map.get("nativeplace").toString());
+                knownCtr.setText(Map.get("knownCtr").toString());
+                story.setText(Map.get("story").toString());
             }
         };
         SetCountryCardListener();//设置监听器
@@ -212,26 +224,22 @@ public class MainActivity extends AppCompatActivity {
     }//初始化国家卡片列表视图
 
     private void SetListCardRecyclerView(){
-
-        //国家人物数据初始化，一个国家对应一个List。S-蜀 W-吴 W2-魏 Q-他
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        Sdata.add(new characterInfo("诸葛亮"));
-        //
-
-        for (characterInfo c:Sdata) {
-            Map<String,Object> listitem = new LinkedHashMap<>();
-            c.setPic(defaultPic);//如果没有头像,设置默认图片
-            listitem.put("name",c.profile_name);
-            listitem.put("loyal_to",c.loyal_to);
-            listitem.put("pic",c.profile_pic);
-            ctrListitems.add(listitem);
+        Cursor person = db.rawQuery("select * from person",null);
+        if (person.moveToFirst()) {
+            do {
+                Map<String,Object> listitem = new LinkedHashMap<>();
+                listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                listitem.put("pic",defaultPic);
+                ctrListitems.add(listitem);
+            } while (person.moveToNext());
         }
-
+        person.close();
 
         //设置recyclerview布局
         ctrRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -363,7 +371,24 @@ public class MainActivity extends AppCompatActivity {
                 MyFontTextView ctrName = (MyFontTextView) ItemView.getChildAt(0  );//获取到人物卡片中的人物名称View
                 String characterName = ctrName.getText().toString();
                 Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
-                characterInfo ctrInfo = new characterInfo(characterName);
+                characterInfo ctrInfo;
+                Cursor person = db.rawQuery("select * from person where 名字="+characterName,null);
+                if (person.moveToFirst()) {
+                    do {
+                        String loyal_to = person.getString(person.getColumnIndex("主效"));
+                        String nativeplace = person.getString(person.getColumnIndex("籍贯"));
+                        String birthday = person.getString(person.getColumnIndex("生卒"));
+                        String story = person.getString(person.getColumnIndex("信息"));
+                        boolean editable = new Boolean(""+person.getInt(person.getColumnIndex("editable")));
+                        boolean marked = new Boolean(""+person.getInt(person.getColumnIndex("collected")));
+                        Bitmap pic = defaultPic;
+                        ctrInfo = new characterInfo(characterName, loyal_to, pic, marked, editable, story, nativeplace, birthday);
+                    } while (person.moveToNext());
+                }
+                else {
+                    ctrInfo = new characterInfo(characterName,null, null, false, false, null, null, null);
+                }
+                person.close();
                 characterCard.initCharacterProfileCard(ctrInfo,defaultPic);//初始化卡片
                 setVisibilty(3);
             }
