@@ -26,28 +26,42 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         />
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/country_recycler"
+
+    <!--带滑动删除的列表项-->
+
+    <include
+        android:id="@+id/privatecollect_menu"
+        layout="@layout/privatecollect_menu"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="60dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+    <com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView
+        android:id="@+id/list_card_recycler_with_delete"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="95dp"
         android:layout_marginBottom="60dp"
         android:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         />
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_card_recycler"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="60dp"
-        android:layout_marginBottom="60dp"
-        android:elevation="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+
+    <!--用于编辑的卡片-->
+
+    <include
+        android:id="@+id/character_edit_card"
+        layout="@layout/character_edit_card"
+        android:visibility="gone"
         />
+
+    <!--用于显示人物信息的卡片-->
+
     <include
         android:id="@+id/character_card"
         layout="@layout/character_profile_card"

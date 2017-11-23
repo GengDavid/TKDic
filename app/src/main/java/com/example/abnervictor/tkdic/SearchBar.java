@@ -21,11 +21,11 @@ public class SearchBar extends AppCompatActivity {
         this.search_button = search_button;
         this.search_text = search_text;
         this.search_content = search_content;
-        SetFocusChangeListener();
+        SetFocusChangeListener();//设置改变搜索框激活状态的监听器
         foucusing = false;
         DisableSearchBar();
     }
-    public void Reversefocusing(){
+    private void Reversefocusing(){
         if (foucusing){
             setFocusing(false);
         }
@@ -72,7 +72,17 @@ public class SearchBar extends AppCompatActivity {
         }//收起键盘
     }
 
+    private boolean isFocusing(){
+        return foucusing;
+    }
+
     private void SetFocusChangeListener(){
+        search_button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Reversefocusing();
+            }
+        });//点击搜索按钮改变搜索框激活状态
         search_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean hasFocus) {

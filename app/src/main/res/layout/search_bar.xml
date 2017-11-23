@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="60dp"
+    android:elevation="10dp"
     android:paddingTop="3dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
@@ -49,9 +50,5 @@
             android:id="@+id/search_text"
             />
     </android.support.constraint.ConstraintLayout>
-
-
-
-
 
 </android.support.constraint.ConstraintLayout>

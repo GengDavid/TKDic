@@ -1,22 +1,92 @@
 package com.example.abnervictor.tkdic;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
+import jp.wasabeef.recyclerview.animators.FadeInAnimator;
+import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 
 public class MainActivity extends AppCompatActivity {
 
+    private class countryInfo{
+        public String countryName;//国号
+        public String year;//建国～亡国
+        public String leader;//国君
+        public String nativeplace;//都城
+        public String knownCtr;//知名人物
+        public String story;
+        public countryInfo(String countryName){
+            this.countryName = countryName;
+            //从数据库中获取剩下的内容, 初始化国家数据
+        }
+    }
+
+    //for Navigation Bar
     private NavigationBar Navigationbar;
     private ImageView home;
     private ImageView folder;
     private ImageView privatecollect;
 
+    //for Search Bar
     private SearchBar Searchbar;
     private ImageView search_button;
     private EditText search_text;
     private View search_content;
+
+    private List<String> characterID;//用于储存RecyclerView中
+
+    //for country_card
+    private List<countryInfo> Cdata = new ArrayList<>();//后面不需要这种东西
+    private List<Map<String,Object>> countryListitems = new ArrayList<>();
+    private RecyclerView countryRecyclerView;
+    private RecyclerViewAdapter<Map<String, Object>> countryAdapter;
+
+    //for list_card
+    private List<characterInfo> Sdata = new ArrayList<>();//后面不需要这种东西
+    private List<Map<String,Object>> ctrListitems = new ArrayList<>();
+    private RecyclerView ctrRecyclerView;
+    private RecyclerViewAdapter<Map<String, Object>> ctrAdapter;
+
+    //for list_card_with_delete
+    private SwipeMenuRecyclerView ctr2RecyclerView;
+    private RecyclerViewAdapter<Map<String, Object>> ctr2Adapter;
+
+    //for character_profile_card
+    private View ctrProfileCard;
+    private CircularImageView profile_pic;
+    private MyFontTextView profile_loyal_to;
+    private MyFontTextView profile_name;
+    private TextView profile_birthday;
+    private TextView profile_nativeplace;
+    private TextView profile_story;
+    private ImageView profile_edit;
+    private ImageView profile_mark;
+    private CharacterCard characterCard;
+
+    private Bitmap defaultPic;
 
 
     @Override
@@ -25,12 +95,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         findView();
+        InitRecyclerView();
         SetNavigationBarListener();
-        SetSearchBarListener();
+        SetSearchBarListener();//搜索框的监听器
+        SetProfileCardListener();//人物详情卡片的监听器
+        setVisibilty(1);
 
     }
 
     private void findView(){
+
+        defaultPic = BitmapFactory.decodeResource(this.getApplicationContext().getResources(),R.drawable.zhuge);
 
         home = findViewById(R.id.navigation_bar_home);
         folder = findViewById(R.id.navigation_bar_folder);
@@ -45,13 +120,148 @@ public class MainActivity extends AppCompatActivity {
 
         Searchbar = new SearchBar(search_button,search_text,search_content);
 
+        //国家列表及人物列表
+        countryRecyclerView = findViewById(R.id.country_recycler);
+        ctrRecyclerView = findViewById(R.id.list_card_recycler);
+        ctr2RecyclerView = findViewById(R.id.list_card_recycler_with_delete);
+
+        //人物详情卡片
+        ctrProfileCard = findViewById(R.id.character_card);
+        profile_pic = findViewById(R.id.profile_pic);
+        profile_loyal_to = findViewById(R.id.profile_loyal_to);
+        profile_name = findViewById(R.id.profile_name);
+        profile_nativeplace = findViewById(R.id.profile_nativeplace);
+        profile_birthday = findViewById(R.id.profile_birthday);
+        profile_story = findViewById(R.id.profile_story);
+        profile_edit = findViewById(R.id.profile_edit);
+        profile_mark = findViewById(R.id.profile_mark);
+        characterCard = new CharacterCard(profile_pic,profile_loyal_to,profile_name,profile_birthday,profile_nativeplace,profile_story,profile_mark,profile_edit);
     }
+
+    private void InitRecyclerView(){
+        SetCountryCardRecyclerView();
+        SetListCardRecyclerView();
+    }
+
+    private int nowVisibilty;//当前可视情况
+    private void setVisibilty(int Case){
+        switch (Case){
+            case 1:
+                nowVisibilty = 1;
+                countryRecyclerView.setVisibility(View.VISIBLE);
+                ctrRecyclerView.setVisibility(View.GONE);
+                ctrProfileCard.setVisibility(View.GONE);
+                break;
+            case 2:
+                nowVisibilty = 2;
+                countryRecyclerView.setVisibility(View.GONE);
+                ctrRecyclerView.setVisibility(View.VISIBLE);
+                ctrProfileCard.setVisibility(View.GONE);
+                break;
+            case 3:
+                nowVisibilty = 3;
+                countryRecyclerView.setVisibility(View.GONE);
+                ctrRecyclerView.setVisibility(View.GONE);
+                ctrProfileCard.setVisibility(View.VISIBLE);
+                break;
+            default:
+                nowVisibilty = 0;
+                break;
+        }
+    }//切换各视图的可见情况
+
+    private void SetCountryCardRecyclerView(){
+        //初始化国家List
+        Cdata.add(new countryInfo("蜀"));
+        Cdata.add(new countryInfo("吴"));
+        Cdata.add(new countryInfo("魏"));
+        Cdata.add(new countryInfo("他"));
+        //初始化国家显示(recyclerview)列表
+        for (countryInfo c : Cdata) {
+            Map<String, Object> listitem = new LinkedHashMap<>();
+            listitem.put("countryName", c.countryName);
+            //more to initial
+            countryListitems.add(listitem);
+        }
+        countryRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL));
+        //国家recyclerview适配器初始化，绑定数据以及设置点击监听，点击监听具体为跳转显示人物recyclerview，并根据点击国家给其列表刷新添加相应的人物
+        countryAdapter = new RecyclerViewAdapter<Map<String, Object>>(this, R.layout.country_card, countryListitems) {
+            @Override
+            public void convert(ViewHolder holder, Map<String, Object> Map) {
+
+                MyFontTextView countryName = holder.getView(R.id.countryName);
+                TextView year = holder.getView(R.id.year);//建国～亡国
+                TextView leader = holder.getView(R.id.leader);//国君
+                TextView nativeplace = holder.getView(R.id.nativeplace);//都城
+                TextView knownCtr = holder.getView(R.id.knownCtr);//知名人物
+                TextView story = holder.getView(R.id.story);//历史
+                //findView
+
+                String S = Map.get("countryName").toString();
+                //more to initial
+
+                countryName.setText(S);
+            }
+        };
+        SetCountryCardListener();//设置监听器
+        //国家recyclerview动画、适配器设置
+        AlphaInAnimationAdapter animationAdapter = new AlphaInAnimationAdapter(countryAdapter);
+        animationAdapter.setDuration(1200);
+        countryRecyclerView.setAdapter(countryAdapter);
+        countryRecyclerView.setItemAnimator(new SlideInRightAnimator());
+    }//初始化国家卡片列表视图
+
+    private void SetListCardRecyclerView(){
+
+        //国家人物数据初始化，一个国家对应一个List。S-蜀 W-吴 W2-魏 Q-他
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        Sdata.add(new characterInfo("诸葛亮"));
+        //
+
+        for (characterInfo c:Sdata) {
+            Map<String,Object> listitem = new LinkedHashMap<>();
+            c.setPic(defaultPic);//如果没有头像,设置默认图片
+            listitem.put("name",c.profile_name);
+            listitem.put("loyal_to",c.loyal_to);
+            listitem.put("pic",c.profile_pic);
+            ctrListitems.add(listitem);
+        }
+
+
+        //设置recyclerview布局
+        ctrRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        //人物recyclerview适配器初始化，绑定数据，以及根据点击的人物跳转到PersonInformation（第二个Activity）中
+        ctrAdapter = new RecyclerViewAdapter<Map<String,Object>>(this, R.layout.list_card, ctrListitems) {
+            @Override
+            public void convert(ViewHolder holder, Map<String, Object> M) {
+                CircularImageView pic = holder.getView(R.id.profile_pic);
+                pic.setImageBitmap((Bitmap) M.get("pic"));
+                MyFontTextView name = holder.getView(R.id.profile_name);
+                name.setText(M.get("name").toString());
+                MyFontTextView country = holder.getView(R.id.nativeplace);
+                country.setText(M.get("loyal_to").toString());
+            }
+        };
+        SetListCardListener();//监听器
+        //设置人物recyclerview动画、适配器
+        AlphaInAnimationAdapter animationAdapter1 = new AlphaInAnimationAdapter(ctrAdapter);
+        animationAdapter1.setDuration(1000);
+        animationAdapter1.setFirstOnly(false);
+        ctrRecyclerView.setItemAnimator(new FadeInAnimator());
+        ctrRecyclerView.setAdapter(new ScaleInAnimationAdapter(animationAdapter1));
+    }//初始化人物列表视图
 
     private void SetNavigationBarListener(){
         home.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(1);
+                setVisibilty(1);
             }
         });
         folder.setOnClickListener(new View.OnClickListener() {
@@ -59,21 +269,121 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(2);
             }
-        });
+        });//点击跳转到markActivity
         privatecollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(3);
+                Intent intent = new Intent(MainActivity.this,PrivateCollectActivity.class);
+                startActivity(intent);
             }
-        });
+        });//点击跳转到privatecollectActivity
     }//导航栏监听器
 
     private void SetSearchBarListener(){
-        search_button.setOnClickListener(new View.OnClickListener(){
+        search_text.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onClick(View view){
-                Searchbar.Reversefocusing();
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
+                String search = Searchbar.getSearchText();//获取搜索框内的文字
+                //根据字符串Update列表
+                //下面使用关键字人物名称生成列表
+                List<characterInfo> characterInfoList = null;
+                //从数据库获取List
+                //charcterInfoList = SQL.getCharacterListFromName(search);
+                //
+                //
+                //用列表初始化人物列表
+                if(characterInfoList != null){
+                    ctrListitems.clear();
+                    for (characterInfo c:characterInfoList) {
+                        Map<String,Object> listitem = new LinkedHashMap<>();
+                        listitem.put("name",c.profile_name);
+                        listitem.put("loyal_to",c.loyal_to);
+                        listitem.put("pic",c.profile_pic);
+                        ctrListitems.add(listitem);
+                    }
+                    ctrAdapter.notifyDataSetChanged();//修改列表内容
+                }
+                //
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });//监听搜索框内的文本
+    }//搜索框监听器，生成列表，待接入数据库
+
+    private void SetCountryCardListener(){
+        countryAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position) {
+                ViewGroup ItemView = (ViewGroup) countryRecyclerView.getLayoutManager().findViewByPosition(position);
+                MyFontTextView country = (MyFontTextView) ItemView.getChildAt(0);//获取到国家卡片中的国家名称View
+                String countryName = country.getText().toString();
+                Toast.makeText(getApplicationContext(),countryName,Toast.LENGTH_SHORT).show();
+                //下面使用关键字国家名称生成列表
+                List<characterInfo> characterInfoList = null;
+                //从数据库获取List
+                //charcterInfoList = SQL.getCharacterListFromCountry(countryName);
+                //
+                //
+                //用列表初始化人物列表
+                if(characterInfoList != null){
+                    ctrListitems.clear();
+                    for (characterInfo c:characterInfoList) {
+                        Map<String,Object> listitem = new LinkedHashMap<>();
+                        listitem.put("name",c.profile_name);
+                        listitem.put("loyal_to",c.loyal_to);
+                        listitem.put("pic",c.profile_pic);
+                        ctrListitems.add(listitem);
+                    }
+                    ctrAdapter.notifyDataSetChanged();//修改列表内容
+                }
+                setVisibilty(2);
+            }
+
+            @Override
+            public void onLongClick(int positon) {
+
             }
         });
-    }
+    }//点击CountryCard，生成列表，待接入数据库
+
+    private void SetListCardListener(){
+        ctrAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position) {
+                ViewGroup ItemView = (ViewGroup) ctrRecyclerView.getLayoutManager().findViewByPosition(position);
+                MyFontTextView ctrName = (MyFontTextView) ItemView.getChildAt(0  );//获取到人物卡片中的人物名称View
+                String characterName = ctrName.getText().toString();
+                Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
+                characterInfo ctrInfo = new characterInfo(characterName);
+                characterCard.initCharacterProfileCard(ctrInfo,defaultPic);//初始化卡片
+                setVisibilty(3);
+            }
+
+            @Override
+            public void onLongClick(int positon) {
+
+            }
+        });
+    }//点击ListCard，做出响应
+
+    private void SetProfileCardListener(){
+        characterCard.edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(characterCard.getCharacterinfo().editable){
+                    //可编辑，跳转
+                }
+            }
+        });//点击编辑按钮做出响应
+    }//点击ProfileCard按钮，做出响应
+
 }

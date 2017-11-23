@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout
-    android:layout_width="match_parent"
+    android:layout_width="360dp"
     android:layout_height="80dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.example.abnervictor.tkdic.MyFontTextView
         android:layout_width="wrap_content"
@@ -23,8 +23,8 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_marginTop="5dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:layout_marginBottom="5dp"
         android:elevation="3dp"
         android:background="@drawable/list_card_shape"
@@ -34,7 +34,6 @@
         app:layout_constraintLeft_toLeftOf="parent"
         >
         <com.example.abnervictor.tkdic.CircularImageView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="20dp"
@@ -44,6 +43,7 @@
             android:src="@drawable/zhuge"
             android:id="@+id/profile_pic"
             />
+
         <View
             android:layout_width="1dp"
             android:layout_height="match_parent"
@@ -70,4 +70,5 @@
             android:id="@+id/nativeplace"
             />
     </android.support.constraint.ConstraintLayout>
+
 </android.support.constraint.ConstraintLayout>

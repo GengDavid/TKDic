@@ -3,10 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_marginTop="70dp"
+    android:layout_marginTop="15dp"
     android:layout_marginLeft="20dp"
     android:layout_marginRight="20dp"
-    android:layout_marginBottom="80dp"
+    android:layout_marginBottom="20dp"
     android:elevation="3dp"
     android:background="@drawable/card_shape"
     android:id="@+id/country_card"
@@ -24,17 +24,150 @@
         android:textSize="50sp"
         android:textColor="@color/Black"
         android:textAlignment="center"
-        android:id="@+id/country"
+        android:id="@+id/countryName"
         />
-    <ImageView
+    <!--<ImageView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="440dp"-->
+        <!--app:layout_constraintTop_toTopOf="parent"-->
+        <!--app:layout_constraintLeft_toLeftOf="parent"-->
+        <!--app:layout_constraintRight_toRightOf="parent"-->
+        <!--android:scaleType="fitCenter"-->
+        <!--android:src="@drawable/shuhan"-->
+        <!--/>-->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="440dp"
-
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:scaleType="fitCenter"
-        android:src="@drawable/shuhan"
-        />
+        app:layout_constraintTop_toBottomOf="@id/countryName"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/year_info"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="建国~亡国： "
+            android:textColor="@color/Black"
+            android:id="@+id/front_year"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="221年5月15日"
+            android:id="@+id/year"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/year_info"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/nativeplace_info"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="都城： "
+            android:textColor="@color/Black"
+            android:id="@+id/front_nativeplace"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="成都"
+            android:id="@+id/nativeplace"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nativeplace_info"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/leader_info"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="国君： "
+            android:textColor="@color/Black"
+            android:id="@+id/front_leader"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="刘备、刘禅"
+            android:id="@+id/leader"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/leader_info"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/knownCtr_info"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="人物： "
+            android:textColor="@color/Black"
+            android:id="@+id/front_knownCtr"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="诸葛孔明、关羽、张飞、赵子龙"
+            android:id="@+id/knownCtr"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/knownCtr_info"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/story_info"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="历史： "
+            android:textColor="@color/Black"
+            android:id="@+id/front_story"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="东汉末年，何进、董卓先后败亡，天下局势逐渐转变成诸侯混战，刘备在混战中辗转奔波，于赤壁之战后收复荆州各地，而后进取西川、攻下汉中，最终建立蜀汉政权。"
+            android:id="@+id/story"
+            />
+
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -10,18 +10,22 @@
     android:elevation="3dp"
     android:background="@drawable/card_shape">
 
-    <com.example.abnervictor.tkdic.MyFontTextView
+    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="25dp"
         android:layout_marginStart="25dp"
-        android:text="蜀"
-        android:textSize="26sp"
+        android:background="@null"
+        android:textSize="16sp"
+        android:hint="所属势力，必填"
+        android:maxLength="1"
+        android:singleLine="true"
         android:textColor="@color/Black"
+        android:textCursorDrawable="@color/Gray"
         android:textAlignment="center"
-        android:id="@+id/profile_loyal_to"
+        android:id="@+id/edit_loyal_to"
         />
 
     <com.example.abnervictor.tkdic.CircularImageView
@@ -32,23 +36,26 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="60dp"
-        android:src="@drawable/zhuge"
-        android:id="@+id/profile_pic"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_profile_pic"
+        android:id="@+id/edit_profile_pic"
         />
 
-    <com.example.abnervictor.tkdic.MyFontTextView
+    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_pic"
+        app:layout_constraintTop_toBottomOf="@id/edit_profile_pic"
         android:layout_marginStart="40dp"
         android:layout_marginEnd="40dp"
         android:layout_marginTop="20dp"
         android:textAlignment="center"
-        android:id="@+id/profile_name"
-        android:text="诸葛亮"
-        android:textSize="22sp"
+        android:id="@+id/edit_profile_name"
+        android:hint="人物姓名，必填"
+        android:background="@null"
+        android:textSize="20sp"
+        android:textCursorDrawable="@color/Gray"
         android:textColor="@color/Black"
         />
 
@@ -58,11 +65,11 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_name"
+        app:layout_constraintTop_toBottomOf="@id/edit_profile_name"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
-        android:layout_marginTop="10dp"
-        android:id="@+id/birthday_info"
+        android:layout_marginTop="15dp"
+        android:id="@+id/edit_birthday_info"
         >
 
         <TextView
@@ -70,13 +77,17 @@
             android:layout_height="wrap_content"
             android:text="生卒： "
             android:textColor="@color/Black"
-            android:id="@+id/front_birthday"
+            android:id="@+id/edit_front_birthday"
             />
-        <TextView
+        <EditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="181年-234年10月8日，男性"
-            android:id="@+id/profile_birthday"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textSize="14sp"
+            android:hint="生卒年月，性别，必填"
+            android:singleLine="true"
+            android:textCursorDrawable="@color/Gray"
+            android:id="@+id/edit_birthday"
             />
 
     </LinearLayout>
@@ -86,11 +97,11 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/birthday_info"
+        app:layout_constraintTop_toBottomOf="@id/edit_birthday_info"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         android:layout_marginTop="10dp"
-        android:id="@+id/nativeplace_info"
+        android:id="@+id/edit_nativeplace_info"
         >
 
         <TextView
@@ -98,13 +109,17 @@
             android:layout_height="wrap_content"
             android:text="籍贯： "
             android:textColor="@color/Black"
-            android:id="@+id/front_nativeplace"
+            android:id="@+id/edit_front_nativeplace"
             />
-        <TextView
+        <EditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="徐州琅琊阳都人"
-            android:id="@+id/profile_nativeplace"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textSize="14sp"
+            android:hint="必填"
+            android:singleLine="true"
+            android:textCursorDrawable="@color/Gray"
+            android:id="@+id/edit_nativeplace"
             />
 
     </LinearLayout>
@@ -114,11 +129,12 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nativeplace_info"
+        app:layout_constraintTop_toBottomOf="@id/edit_nativeplace_info"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         android:layout_marginTop="10dp"
-        android:id="@+id/story_info"
+        android:id="@+id/edit_story_info"
+
         >
 
         <TextView
@@ -126,13 +142,17 @@
             android:layout_height="wrap_content"
             android:text="事迹： "
             android:textColor="@color/Black"
-            android:id="@+id/front_story"
+            android:id="@+id/edit_front_story"
             />
-        <TextView
+
+        <EditText
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="三国时期蜀汉丞相，杰出的政治家、军事家、外交家、文学家、书法家、发明家。"
-            android:id="@+id/profile_story"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="请输入人物事迹，选填"
+            android:textSize="14sp"
+            android:id="@+id/edit_story"
+            android:textCursorDrawable="@color/Gray"
             />
 
     </LinearLayout>
@@ -144,8 +164,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginBottom="25dp"
         android:layout_marginStart="25dp"
-        android:src="@drawable/mark"
-        android:id="@+id/profile_mark"
+        android:src="@drawable/cancel"
+        android:id="@+id/cancel"
         />
 
     <ImageView
@@ -155,7 +175,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="27dp"
         android:layout_marginEnd="27dp"
-        android:src="@drawable/edit"
-        android:id="@+id/profile_edit"
+        android:src="@drawable/confirm"
+        android:id="@+id/confirm"
         />
 </android.support.constraint.ConstraintLayout>
