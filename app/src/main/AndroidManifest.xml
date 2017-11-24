@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.abnervictor.tkdic">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
+        <activity android:name=".MainActivity" android:windowSoftInputMode="adjustPan|stateHidden" android:launchMode="singleTask"></activity>
         <activity android:name=".MarkActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
         <activity android:name=".PrivateCollectActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
 

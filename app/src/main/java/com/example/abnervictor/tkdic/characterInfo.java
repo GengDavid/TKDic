@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 
 /**
@@ -20,31 +21,51 @@ public class characterInfo extends AppCompatActivity{
     public Bitmap profile_pic;
     public boolean marked;//已收藏为true
     public boolean editable;//可编辑为true
+
+    private FileHelper fileHelper;
     private DataManager dataManager;
     private SQLiteDatabase db;
 
     private void initDataBase(){
+        //fileHelper = new FileHelper(Environment.getDataDirectory()+"/data");
         dataManager = new DataManager(this);
         db = dataManager.openDatabase("threekindom.db");
     }
 
-    public characterInfo(String profile_name,
-                         String loyal_to,
-                         Bitmap profile_pic,
-                         boolean marked,
-                         boolean editable,
-                         String story,
-                         String nativeplace,
-                         String birthday) {
+    public characterInfo(String profile_name){
         this.profile_name = profile_name;
-        this.loyal_to = loyal_to;//默认所属
-        this.profile_pic = profile_pic;//默认没有头像
-        this.marked = marked;//默认未收藏
-        this.editable = editable;//默认不可编辑
-        this.story = story;
-        this.birthday = birthday;
-        this.nativeplace = nativeplace;
+        loyal_to = "蜀";//默认所属
+        profile_pic = null;//默认没有头像
+        marked = false;//默认未收藏
+        editable = false;//默认不可编辑
+        String RootPath = Environment.getExternalStorageDirectory().getPath()+"/TKDic";
+        fileHelper = new FileHelper(RootPath);
+        getData();
     }
+
+    private void getData(){
+        initDataBase();
+        Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
+        if (person.moveToFirst()) {
+            id = person.getInt(person.getColumnIndex("ID"));
+            loyal_to = person.getString(person.getColumnIndex("主效"));
+            nativeplace = person.getString(person.getColumnIndex("籍贯"));
+            birthday = person.getString(person.getColumnIndex("生卒"));
+            story = person.getString(person.getColumnIndex("信息"));
+            String edit = person.getString(person.getColumnIndex("editable"));
+            if(edit.equals("1")) editable = true;
+            else editable = false;
+            String mark = person.getString(person.getColumnIndex("collected"));
+            if(mark.equals("1")) marked = true;
+            else marked = false;
+            Bitmap bm = fileHelper.getBitmapFromFolder("picture",Integer.toString(id),"bmp");
+            if (bm != null){
+                profile_pic = bm;
+            }
+        }
+        person.close();
+    }
+
     public void setPic(Bitmap bm){
         if (profile_pic == null){
             profile_pic = bm;
@@ -53,25 +74,26 @@ public class characterInfo extends AppCompatActivity{
 
     public void reverseMark(){
         initDataBase();
-        if(marked){
-            Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
+        Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
+        person.moveToFirst();
+        String mark = person.getString(person.getColumnIndex("collected"));
+        if(mark.equals("1")){
             if (person.moveToFirst()) {
-                Integer ID = person.getInt(person.getColumnIndex("ID"));
                 ContentValues values = new ContentValues();
                 values.put("collected", 0);
-                db.update("person", values, "ID = ?", new String[]{ID.toString()});
+                db.update("person", values, "名字 = ?", new String[]{profile_name});
                 person.close();
             }
+            marked = false;
         }
         else{
-            Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
             if (person.moveToFirst()) {
-                Integer ID = person.getInt(person.getColumnIndex("ID"));
                 ContentValues values = new ContentValues();
                 values.put("collected", 1);
-                db.update("person", values, "ID = ?", new String[]{ID.toString()});
+                db.update("person", values, "名字 = ?", new String[]{profile_name});
                 person.close();
             }
+            marked = true;
         }
     }//反转收藏，结合数据库操作
 

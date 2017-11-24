@@ -1,20 +1,15 @@
 package com.example.abnervictor.tkdic;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.provider.MediaStore;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -23,6 +18,7 @@ import java.util.Arrays;
 
 //新建、编辑人物卡片
 public class EditCard extends AppCompatActivity {
+    private int ID;
     private EditText loyal_to;//所属势力
     private EditText profile_name;//人物姓名
     private EditText birthday;//生卒信息
@@ -32,11 +28,13 @@ public class EditCard extends AppCompatActivity {
     private ImageView cancel;//取消按钮
     private ImageView confirm;//确定按钮
     private characterInfo characterinfo;
-    private static String[] country = {"蜀","吴","魏","它"};
+    private static String[] country = {"蜀","吴","魏","它","t"};
     private Boolean[] checkSet;
     private boolean AnewProfileShouldBeMake;
     private Bitmap bitmap;//从相册获取到的bitmap
     private Bitmap defaultBitmap;
+
+    private FileHelper fileHelper;
     private DataManager dataManager;
     private SQLiteDatabase db;
 
@@ -59,8 +57,15 @@ public class EditCard extends AppCompatActivity {
         checkSet = new Boolean[6];
         AnewProfileShouldBeMake = true;
         bitmap = null;
+        String path = Environment.getExternalStorageDirectory().getPath()+ File.separator+"TKDic";
+        fileHelper = new FileHelper(path);
         checkLegal();
         initDataBase();
+    }
+
+    public void setBitmap(Bitmap bm){
+        bitmap = bm;
+        profile_pic.setImageBitmap(bitmap);
     }
 
     public void InitEditCardWithNull(){
@@ -75,14 +80,17 @@ public class EditCard extends AppCompatActivity {
         profile_name.setError(null);
         birthday.setError(null);
         nativeplace.setError(null);
+        confirm.setImageResource(R.drawable.confirm);
         //清空输入框内容
         characterinfo = null;
         checkSet = new Boolean[6];
         bitmap = null;
+        ID = -1;
         profile_pic.setImageBitmap(defaultBitmap);
     }//新建人物信息的时候调用，清空所有信息
 
     public void InitEditCardWithInfo(characterInfo characterinfo){
+        this.ID = characterinfo.id;
         AnewProfileShouldBeMake = false;
         this.characterinfo = characterinfo;
         loyal_to.setText(characterinfo.loyal_to);
@@ -91,6 +99,7 @@ public class EditCard extends AppCompatActivity {
         nativeplace.setText(characterinfo.nativeplace);
         story.setText(characterinfo.story);
         profile_pic.setImageBitmap(characterinfo.profile_pic);
+        bitmap = null;
         checkLegal();
     }//编辑已有的人物卡片时调用
 
@@ -132,13 +141,16 @@ public class EditCard extends AppCompatActivity {
         String Story = " ";
         if (story.getText().toString().length() > 0) Story = story.getText().toString();
         if (AnewProfileShouldBeMake){
-            if(!NewCtrInfo(Name,Loyalto,Birthday,Nativeplace,Story)) return false;
-        }//需要insert人物内容
+            NewCtrInfo(Name,Loyalto,Birthday,Nativeplace,Story);
+        }
         else{
-            if(!UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story)) return false;
-        }//需要update人物内容
+            UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story);
+        }
+        if (bitmap!=null){
+            fileHelper.copyBitmapToFolder(bitmap,"picture",Integer.toString(ID));//根据人物ID保存图片
+        }
         //在数据库建立或修改人物信息
-        characterinfo = new characterInfo(Name,Loyalto, null, false, true, Story, Nativeplace, Birthday);
+        characterinfo = new characterInfo(Name);
         if(bitmap != null)characterinfo.setProfilepic(bitmap);//如果设置了人物头像，那么保存人物头像到指定路径
         else if(profile_pic == null)characterinfo.setProfilepic(defaultBitmap);//如果没设置人物头像，人物也没有设置过头像，那么将人物头像设置为默认头像
         return true;
@@ -183,33 +195,20 @@ public class EditCard extends AppCompatActivity {
         }
     }//check不通过，点击保存按钮时输出错误信息
 
-    public void getPicFromAlbum(){
-        Intent getAlbum = new Intent(Intent.ACTION_PICK, null);
-        getAlbum.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-        startActivityForResult(getAlbum,1);//requestCode为1
-    }//从相册获取图片
-
     private boolean UpdateCtrInfoWithName(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
-        Cursor person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
-        if (person.moveToFirst()) {
-            Integer ID = person.getInt(person.getColumnIndex("ID"));
-            ContentValues values = new ContentValues();
-            values.put("名字", Name);
-            values.put("拼音", " ");
-            values.put("性别", " ");
-            values.put("字", " ");
-            values.put("生卒", Birthday);
-            values.put("籍贯", Nativeplace);
-            values.put("主效", Loyalto);
-            values.put("信息", Story);
-            values.put("editable", 1);
-            values.put("collected", 0);
-            db.update("person",values, "ID = ?", new String[] {ID.toString()});
-            person.close();
-            Toast.makeText(getApplicationContext(),Name,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return false;
+        ContentValues values = new ContentValues();
+        values.put("名字", Name);
+        values.put("拼音", " ");
+        values.put("性别", " ");
+        values.put("字", " ");
+        values.put("生卒", Birthday);
+        values.put("籍贯", Nativeplace);
+        values.put("主效", Loyalto);
+        values.put("信息", Story);
+        values.put("editable", 1);
+        values.put("collected", 0);
+        db.update("person",values, "ID = ?", new String[] {Integer.toString(ID)});
+        return true;
     }//根据输入的信息更新人物信息，返回一个查询成功/否的bool值
 
     private boolean NewCtrInfo(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
@@ -235,19 +234,5 @@ public class EditCard extends AppCompatActivity {
         return true;
     }//根据输入的信息新建人物，返回一个查询成功/否的bool值
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        super.onActivityResult(requestCode,resultCode,data);
-        if (requestCode == 1 && data != null){
-            ContentResolver contentResolver = getContentResolver();
-            try {
-                Uri originalUri = data.getData();
-                bitmap = MediaStore.Images.Media.getBitmap(contentResolver,originalUri);
-                profile_pic.setImageBitmap(bitmap);
-            }catch(IOException e){
-                Log.e("TAG-->Error",e.toString());
-            }
-        }//从相册获取到图片后，转化为bitmap，替换到头像处
-    }
 
 }

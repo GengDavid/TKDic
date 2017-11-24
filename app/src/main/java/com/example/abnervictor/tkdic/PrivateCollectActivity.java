@@ -1,15 +1,26 @@
 package com.example.abnervictor.tkdic;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.TransitionInflater;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -24,6 +35,8 @@ import com.yanzhenjie.recyclerview.swipe.SwipeMenuItem;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuItemClickListener;
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,27 +102,92 @@ public class PrivateCollectActivity extends AppCompatActivity {
     private View privatecollect_menu;
     private ImageView add_profile_button;
 
+    private FileHelper fileHelper;
     private DataManager dataManager;
     private SQLiteDatabase db;
+
+    private int requestcode = 0;
 
     private void initDataBase(){
         dataManager = new DataManager(this);
         db = dataManager.openDatabase("threekindom.db");
     }
 
+    public static void verifyStoragePermissions(Activity activity){
+        try{
+            int permission_read = ActivityCompat.checkSelfPermission(activity,"android.permission.READ_EXTERNAL_STORAGE");
+            int permission_write = ActivityCompat.checkSelfPermission(activity,"android.permission.WRITE_EXTERNAL_STORAGE");
+            if (permission_read != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);//请求读权限
+            }
+            if (permission_write != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},2);//请求写权限
+            }
+            if (permission_read != PackageManager.PERMISSION_GRANTED && permission_write != PackageManager.PERMISSION_GRANTED){
+                //hasPermission = true;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.acitivity_privatecollect);
-        findView();
+        verifyStoragePermissions(this);
+
+
+        android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
+        android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
+        getWindow().setEnterTransition(slidel);
+        getWindow().setReenterTransition(slidel);
+
+        requestcode = (int) getIntent().getExtras().get("requestcode");
+        String character =  (String) getIntent().getExtras().get("name");
+
+        String path = Environment.getExternalStorageDirectory().getPath()+ File.separator+"TKDic";
+        fileHelper = new FileHelper(path);
         initDataBase();
-        SetListCardWithDeleteRecyclerView();//初始化RecyclerView
-        SetNavigationBarListener();
-        SetSearchBarListener();
-        SetEditCardListener();
-        SetProfileCardListener();
-        SetMenuListener();
-        setVisibilty(1);
+
+        setContentView(R.layout.acitivity_privatecollect);
+        if ( requestcode == 1) {
+            findView();
+            SetListCardWithDeleteRecyclerView();//初始化RecyclerView
+            SetNavigationBarListener();
+            SetSearchBarListener();
+            SetEditCardListener();
+            SetProfileCardListener();
+            SetMenuListener();
+            characterInfo ctrInfo = new characterInfo(character);
+            editCard.InitEditCardWithInfo(ctrInfo);
+            setVisibilty(3);
+        }
+        else {
+            findView();
+            SetListCardWithDeleteRecyclerView();//初始化RecyclerView
+            SetNavigationBarListener();
+            SetSearchBarListener();
+            SetEditCardListener();
+            SetProfileCardListener();
+            SetMenuListener();
+            setVisibilty(1);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
+        if (requestCode == 2 && data != null){
+            ContentResolver contentResolver = getContentResolver();
+            try {
+                Uri originalUri = data.getData();
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(contentResolver,originalUri);
+                editCard.setBitmap(bitmap);
+            }catch(IOException e){
+                Log.e("TAG-->Error",e.toString());
+            }
+        }//从相册获取到图片后，转化为bitmap，替换到头像处
     }
 
     private void findView(){
@@ -161,9 +239,55 @@ public class PrivateCollectActivity extends AppCompatActivity {
         add_profile_button = findViewById(R.id.add_profile_button);
     }
 
+    private void refreshListCart(){
+        ctr2Listitems.clear();
+        Cursor person = db.rawQuery("select * from person where editable = \"1\"",null);
+        if (person.moveToFirst()) {
+            do {
+                Map<String,Object> listitem = new LinkedHashMap<>();
+                listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                if(bm!=null){
+                    listitem.put("pic",bm);
+                }
+                else listitem.put("pic",defaultPic);
+                ctr2Listitems.add(listitem);
+            } while (person.moveToNext());
+        }
+        person.close();
+        ctr2Adapter.notifyDataSetChanged();
+    }
+
     private void SetListCardWithDeleteRecyclerView(){
 
         //初始化列表
+        ctr2Listitems.clear();
+        Cursor person = db.rawQuery("select * from person where editable = \"1\"",null);
+        if (person.moveToFirst()) {
+            do {
+                Map<String,Object> listitem = new LinkedHashMap<>();
+                listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                if(bm!=null){
+                    listitem.put("pic",bm);
+                }
+                else listitem.put("pic",defaultPic);
+                ctr2Listitems.add(listitem);
+            } while (person.moveToNext());
+        }
+        person.close();
 
         //设置recyclerview布局
         ctr2RecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -171,12 +295,12 @@ public class PrivateCollectActivity extends AppCompatActivity {
         ctr2Adapter = new RecyclerViewAdapter<Map<String,Object>>(this, R.layout.list_card_delete, ctr2Listitems) {
             @Override
             public void convert(ViewHolder holder, Map<String, Object> M) {
-                CircularImageView imag = holder.getView(R.id.profile_pic);
-                imag.setImageResource((int)M.get("imag"));
+                CircularImageView pic = holder.getView(R.id.profile_pic);
+                pic.setImageBitmap((Bitmap) M.get("pic"));
                 MyFontTextView name = holder.getView(R.id.profile_name);
                 name.setText(M.get("name").toString());
                 MyFontTextView country = holder.getView(R.id.nativeplace);
-                country.setText(M.get("country").toString());
+                country.setText(M.get("loyal_to").toString());
             }
         };
 
@@ -204,7 +328,10 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 menuBridge.closeMenu();
                 int position = menuBridge.getAdapterPosition(); // RecyclerView的Item的position。
                 int menuPosition = menuBridge.getPosition(); // 菜单在RecyclerView的Item中的Position
-                //处理删除事件
+                String characterName = (String) ctr2Listitems.get(position).get("name");
+                db.delete("person", "名字 = ?", new String[] { characterName });
+                ctr2Listitems.remove(position);
+                ctr2Adapter.notifyDataSetChanged();
             }
         };
         ctr2RecyclerView.setSwipeMenuItemClickListener(mMenuItemClickListener);
@@ -224,10 +351,11 @@ public class PrivateCollectActivity extends AppCompatActivity {
             @Override
             public void onClick(int position) {
                 ViewGroup ItemView = (ViewGroup) ctr2RecyclerView.getLayoutManager().findViewByPosition(position);
-                MyFontTextView ctrName = (MyFontTextView) ItemView.getChildAt(0  );//获取到人物卡片中的人物名称View
-                String characterName = ctrName.getText().toString();
+                //MyFontTextView ctrName = (MyFontTextView) ItemView.getChildAt( 0);//获取到人物卡片中的人物名称View
+                //String characterName = ctrName.getText().toString();
+                String characterName = (String) ctr2Listitems.get(position).get("name");
                 Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
-                characterInfo ctrInfo = new characterInfo(characterName,null, null, false, false, null, null, null);
+                characterInfo ctrInfo = new characterInfo(characterName);
                 characterCard.initCharacterProfileCard(ctrInfo,defaultPic);//初始化卡片
                 setVisibilty(2);//显示人物详情卡片
             }
@@ -274,14 +402,19 @@ public class PrivateCollectActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(1);
                 Intent intent = new Intent(PrivateCollectActivity.this,MainActivity.class);
-                startActivity(intent);
+                intent.putExtra("navigationState",1);
+                startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(PrivateCollectActivity.this).toBundle());
             }
         });
         folder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(2);
+                Intent intent = new Intent(PrivateCollectActivity.this,MainActivity.class);
+                intent.putExtra("navigationState",2);
+                startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(PrivateCollectActivity.this).toBundle());
             }
+
         });//点击跳转到markActivity
         privatecollect.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -301,11 +434,11 @@ public class PrivateCollectActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
+                if(nowVisibilty != 1)setVisibilty(1);//开始输入后，切换到显示内容
                 String search = Searchbar.getSearchText();//获取搜索框内的文字
                 //根据字符串Update列表
                 //下面使用关键字人物名称生成列表
-                String sql = "select * from person where 名字 like '%"+search+"%'";
+                String sql = "select * from person where 名字 like '%"+search+"%' and editable = 1";
                 Cursor person = db.rawQuery(sql,null);
                 ctr2Listitems.clear();
                 if (person.moveToFirst()) {
@@ -318,7 +451,11 @@ public class PrivateCollectActivity extends AppCompatActivity {
                         listitem.put("story",person.getString(person.getColumnIndex("信息")));
                         listitem.put("edit",person.getString(person.getColumnIndex("editable")));
                         listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                        listitem.put("pic",defaultPic);
+                        Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                        if(bm!=null){
+                            listitem.put("pic",bm);
+                        }
+                        else listitem.put("pic",defaultPic);
                         ctr2Listitems.add(listitem);
                     } while (person.moveToNext());
                 }
@@ -342,7 +479,16 @@ public class PrivateCollectActivity extends AppCompatActivity {
                     if(editCard.saveCharacterProfile()){
                         characterCard.initCharacterProfileCard(editCard.getCharacterinfo(),defaultPic);
                         Toast.makeText(getApplicationContext(),"保存成功",Toast.LENGTH_SHORT).show();
-                        setVisibilty(2);//显示人物信息
+                        refreshListCart();
+                        if (requestcode == 1) {
+                            Intent intent = new Intent(PrivateCollectActivity.this,MainActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("name",(String) getIntent().getExtras().get("name"));
+                            intent.putExtras(bundle);
+                            setResult(2,intent);
+                            finish();
+                        }
+                        else setVisibilty(1);//显示人物信息
                     }//保存人物信息成功
                     else{
                         Toast.makeText(getApplicationContext(),"保存失败",Toast.LENGTH_SHORT).show();
@@ -364,7 +510,7 @@ public class PrivateCollectActivity extends AppCompatActivity {
         edit_pic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //editCard.getPicFromAlbum();//从相册获取图片
+                getPicFromAlbum();//从相册获取图片
             }
         });//点击头像
     }//编辑人物卡片的监听器
@@ -391,5 +537,11 @@ public class PrivateCollectActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void getPicFromAlbum(){
+        Intent getAlbum = new Intent(Intent.ACTION_PICK, null);
+        getAlbum.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        startActivityForResult(getAlbum,2);//requestCode为1
+    }//从相册获取图片
 
 }

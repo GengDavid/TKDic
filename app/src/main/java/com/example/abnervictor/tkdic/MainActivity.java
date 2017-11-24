@@ -1,19 +1,30 @@
 package com.example.abnervictor.tkdic;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.TransitionInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,6 +32,7 @@ import android.widget.Toast;
 
 import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,28 +101,77 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap defaultPic;
 
+    private FileHelper fileHelper;
     private DataManager dataManager;
     private SQLiteDatabase db;
 
+    private Animation mshowAction1;
+    private Animation mshowAction2;
+    private Animation mshowAction3;
+    private Animation mhiddenAction;
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode==1) {                 //修改人物后
+            if (resultCode==2) {
+                String character =  (String) getIntent().getExtras().get("name");
+                //数据库提取
+                //characterInfo ci = new characterInfo();
+                //characterCard.initCharacterProfileCard(ci,defaultPic);
+                setVisibilty(2);
+            }
+        }
+    }
+
+    public static void verifyStoragePermissions(Activity activity){
+        try{
+            int permission_read = ActivityCompat.checkSelfPermission(activity,"android.permission.READ_EXTERNAL_STORAGE");
+            int permission_write = ActivityCompat.checkSelfPermission(activity,"android.permission.WRITE_EXTERNAL_STORAGE");
+            if (permission_read != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);//请求读权限
+            }
+            if (permission_write != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},2);//请求写权限
+            }
+            if (permission_read != PackageManager.PERMISSION_GRANTED && permission_write != PackageManager.PERMISSION_GRANTED){
+                //hasPermission = true;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        verifyStoragePermissions(this);
+
+        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
+        android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
+        getWindow().setEnterTransition(slidel);
+        getWindow().setReenterTransition(slidel);
+
         setContentView(R.layout.activity_main);
 
+        String path = Environment.getExternalStorageDirectory().getPath()+ File.separator+"TKDic";
+        fileHelper = new FileHelper(path);
         initDataBase();
+
         findView();
         InitRecyclerView();
         SetNavigationBarListener();
         SetSearchBarListener();//搜索框的监听器
         SetProfileCardListener();//人物详情卡片的监听器
+        initAnimations();
         setVisibilty(1);
 
-    }
-
-    private void initDataBase(){
-        dataManager = new DataManager(this);
-        db = dataManager.openDatabase("threekindom.db");
     }
 
     private void findView(){
@@ -158,13 +219,16 @@ public class MainActivity extends AppCompatActivity {
         switch (Case){
             case 1:
                 nowVisibilty = 1;
+                countryRecyclerView.setAnimation(mshowAction1);
                 countryRecyclerView.setVisibility(View.VISIBLE);
                 ctrRecyclerView.setVisibility(View.GONE);
                 ctrProfileCard.setVisibility(View.GONE);
+
                 break;
             case 2:
                 nowVisibilty = 2;
                 countryRecyclerView.setVisibility(View.GONE);
+                ctrRecyclerView.setAnimation(mshowAction2);
                 ctrRecyclerView.setVisibility(View.VISIBLE);
                 ctrProfileCard.setVisibility(View.GONE);
                 break;
@@ -172,7 +236,9 @@ public class MainActivity extends AppCompatActivity {
                 nowVisibilty = 3;
                 countryRecyclerView.setVisibility(View.GONE);
                 ctrRecyclerView.setVisibility(View.GONE);
+                ctrProfileCard.setAnimation(mshowAction3);
                 ctrProfileCard.setVisibility(View.VISIBLE);
+
                 break;
             default:
                 nowVisibilty = 0;
@@ -235,7 +301,11 @@ public class MainActivity extends AppCompatActivity {
                 listitem.put("story",person.getString(person.getColumnIndex("信息")));
                 listitem.put("edit",person.getString(person.getColumnIndex("editable")));
                 listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                listitem.put("pic",defaultPic);
+                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                if(bm!=null){
+                    listitem.put("pic",bm);
+                }
+                else listitem.put("pic",defaultPic);
                 ctrListitems.add(listitem);
             } while (person.moveToNext());
         }
@@ -276,6 +346,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(2);
+                ctrListitems.clear();
+                Cursor person = db.rawQuery("select * from person where collected = \"1\"",null);
+                if (person.moveToFirst()) {
+                    do {
+                        Map<String,Object> listitem = new LinkedHashMap<>();
+                        listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                        listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                        listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                        listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                        listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                        listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                        listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                        Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                        if(bm!=null){
+                            listitem.put("pic",bm);
+                        }
+                        else listitem.put("pic",defaultPic);
+                        ctrListitems.add(listitem);
+                    } while (person.moveToNext());
+                }
+                person.close();
+                ctrAdapter.notifyDataSetChanged();
+                setVisibilty(2);
             }
         });//点击跳转到markActivity
         privatecollect.setOnClickListener(new View.OnClickListener() {
@@ -283,7 +376,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Navigationbar.UpdateNavigationBarState(3);
                 Intent intent = new Intent(MainActivity.this,PrivateCollectActivity.class);
-                startActivity(intent);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("name","");
+                bundle.putSerializable("requestcode",0);
+                intent.putExtras(bundle);
+                startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(MainActivity.this).toBundle());
             }
         });//点击跳转到privatecollectActivity
     }//导航栏监听器
@@ -299,7 +396,12 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
                 String search = Searchbar.getSearchText();//获取搜索框内的文字
+                int state = Navigationbar.getState();
                 String sql = "select * from person where 名字 like '%"+search+"%'";
+                if(state == 2){
+                    sql = "select * from person where 名字 like '%"+search+"%' and collected = 1";
+                }
+
                 Cursor person = db.rawQuery(sql,null);
                 ctrListitems.clear();
                 if (person.moveToFirst()) {
@@ -312,7 +414,11 @@ public class MainActivity extends AppCompatActivity {
                         listitem.put("story",person.getString(person.getColumnIndex("信息")));
                         listitem.put("edit",person.getString(person.getColumnIndex("editable")));
                         listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                        listitem.put("pic",defaultPic);
+                        Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                        if(bm!=null){
+                            listitem.put("pic",bm);
+                        }
+                        else listitem.put("pic",defaultPic);
                         ctrListitems.add(listitem);
                     } while (person.moveToNext());
                 }
@@ -348,7 +454,11 @@ public class MainActivity extends AppCompatActivity {
                         listitem.put("story",person.getString(person.getColumnIndex("信息")));
                         listitem.put("edit",person.getString(person.getColumnIndex("editable")));
                         listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                        listitem.put("pic",defaultPic);
+                        Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                        if(bm!=null){
+                            listitem.put("pic",bm);
+                        }
+                        else listitem.put("pic",defaultPic);
                         ctrListitems.add(listitem);
                     } while (person.moveToNext());
                 }
@@ -372,23 +482,7 @@ public class MainActivity extends AppCompatActivity {
                 String characterName = ctrName.getText().toString();
                 Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
                 characterInfo ctrInfo;
-                Cursor person = db.rawQuery("select * from person where 名字=\""+characterName+"\"",null);
-                if (person.moveToFirst()) {
-                    do {
-                        String loyal_to = person.getString(person.getColumnIndex("主效"));
-                        String nativeplace = person.getString(person.getColumnIndex("籍贯"));
-                        String birthday = person.getString(person.getColumnIndex("生卒"));
-                        String story = person.getString(person.getColumnIndex("信息"));
-                        boolean editable = new Boolean(""+person.getInt(person.getColumnIndex("editable")));
-                        boolean marked = new Boolean(""+person.getInt(person.getColumnIndex("collected")));
-                        Bitmap pic = defaultPic;
-                        ctrInfo = new characterInfo(characterName, loyal_to, pic, marked, editable, story, nativeplace, birthday);
-                    } while (person.moveToNext());
-                }
-                else {
-                    ctrInfo = new characterInfo(characterName,null, null, false, false, null, null, null);
-                }
-                person.close();
+                ctrInfo = new characterInfo(characterName);
                 characterCard.initCharacterProfileCard(ctrInfo,defaultPic);//初始化卡片
                 setVisibilty(3);
             }
@@ -406,9 +500,69 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(characterCard.getCharacterinfo().editable){
                     //可编辑，跳转
+                    Intent intent = new Intent(MainActivity.this,PrivateCollectActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("name",characterCard.getCharacterinfo().profile_name);
+                    bundle.putSerializable("requestcode",1);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent,1);
                 }
             }
         });//点击编辑按钮做出响应
     }//点击ProfileCard按钮，做出响应
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x1 = 0;
+        float x2 = 0;
+        float y1 = 0;
+        float y2 = 0;
+        //继承了Activity的onTouchEvent方法，直接监听点击事件
+        if (nowVisibilty == 3) {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                //当手指按下的时候
+                x1 = event.getX();
+                y1 = event.getY();
+            }
+            if(event.getAction() == MotionEvent.ACTION_UP) {
+                //当手指离开的时候
+                x2 = event.getX();
+                y2 = event.getY();
+                if(x2 - x1 > 500) {
+                    Toast.makeText(MainActivity.this, "向右滑", Toast.LENGTH_SHORT).show();
+                    ctrAdapter.notifyDataSetChanged();
+                    setVisibilty(2);
+                }
+            }
+        }
+        return super.onTouchEvent(event);
+    }
+
+    private void initAnimations() {
+        mshowAction1 = AnimationUtils.loadAnimation(this,R.anim.slidein);
+        mshowAction1.setRepeatMode(Animation.RESTART);
+        mshowAction1.setRepeatCount(Animation.INFINITE);
+        mshowAction2 = AnimationUtils.loadAnimation(this,R.anim.slidein);
+        mshowAction3 = AnimationUtils.loadAnimation(this,R.anim.slidein);
+        mhiddenAction = AnimationUtils.loadAnimation(this,R.anim.slideout);
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent){
+        super.onNewIntent(intent);
+        setIntent(intent);
+        intent = getIntent();
+        int navigationState = intent.getIntExtra("navigationState",1);
+        if(navigationState == 1){
+            Navigationbar.UpdateNavigationBarState(1);
+            setVisibilty(1);
+        }
+        else if(navigationState == 2){
+            Navigationbar.UpdateNavigationBarState(2);
+            setVisibilty(2);
+        }
+    }
 
 }
