@@ -1,5 +1,8 @@
 package com.example.abnervictor.tkdic;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 
@@ -17,6 +20,13 @@ public class characterInfo extends AppCompatActivity{
     public Bitmap profile_pic;
     public boolean marked;//已收藏为true
     public boolean editable;//可编辑为true
+    private DataManager dataManager;
+    private SQLiteDatabase db;
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
+    }
 
     public characterInfo(String profile_name,
                          String loyal_to,
@@ -42,11 +52,26 @@ public class characterInfo extends AppCompatActivity{
     }
 
     public void reverseMark(){
+        initDataBase();
         if(marked){
-            //若收藏，取消收藏
+            Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
+            if (person.moveToFirst()) {
+                Integer ID = person.getInt(person.getColumnIndex("ID"));
+                ContentValues values = new ContentValues();
+                values.put("collected", 0);
+                db.update("person", values, "ID = ?", new String[]{ID.toString()});
+                person.close();
+            }
         }
         else{
-            //若未收藏，那么收藏
+            Cursor person = db.rawQuery("select * from person where 名字=\""+profile_name+"\"",null);
+            if (person.moveToFirst()) {
+                Integer ID = person.getInt(person.getColumnIndex("ID"));
+                ContentValues values = new ContentValues();
+                values.put("collected", 1);
+                db.update("person", values, "ID = ?", new String[]{ID.toString()});
+                person.close();
+            }
         }
     }//反转收藏，结合数据库操作
 

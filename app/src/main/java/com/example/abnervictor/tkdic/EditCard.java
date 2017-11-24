@@ -1,7 +1,10 @@
 package com.example.abnervictor.tkdic;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -9,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,6 +37,13 @@ public class EditCard extends AppCompatActivity {
     private boolean AnewProfileShouldBeMake;
     private Bitmap bitmap;//从相册获取到的bitmap
     private Bitmap defaultBitmap;
+    private DataManager dataManager;
+    private SQLiteDatabase db;
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
+    }
 
     public EditCard(EditText loyal_to, EditText profile_name, EditText birthday, EditText nativeplace, EditText story, CircularImageView profile_pic, ImageView cancel, ImageView confirm, Bitmap defaultBitmap){
         this.loyal_to = loyal_to;
@@ -49,6 +60,7 @@ public class EditCard extends AppCompatActivity {
         AnewProfileShouldBeMake = true;
         bitmap = null;
         checkLegal();
+        initDataBase();
     }
 
     public void InitEditCardWithNull(){
@@ -126,7 +138,7 @@ public class EditCard extends AppCompatActivity {
             if(!UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story)) return false;
         }//需要update人物内容
         //在数据库建立或修改人物信息
-        characterinfo = new characterInfo(Name);
+        characterinfo = new characterInfo(Name,Loyalto, null, false, true, Story, Nativeplace, Birthday);
         if(bitmap != null)characterinfo.setProfilepic(bitmap);//如果设置了人物头像，那么保存人物头像到指定路径
         else if(profile_pic == null)characterinfo.setProfilepic(defaultBitmap);//如果没设置人物头像，人物也没有设置过头像，那么将人物头像设置为默认头像
         return true;
@@ -178,11 +190,49 @@ public class EditCard extends AppCompatActivity {
     }//从相册获取图片
 
     private boolean UpdateCtrInfoWithName(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
+        Cursor person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
+        if (person.moveToFirst()) {
+            Integer ID = person.getInt(person.getColumnIndex("ID"));
+            ContentValues values = new ContentValues();
+            values.put("名字", Name);
+            values.put("拼音", " ");
+            values.put("性别", " ");
+            values.put("字", " ");
+            values.put("生卒", Birthday);
+            values.put("籍贯", Nativeplace);
+            values.put("主效", Loyalto);
+            values.put("信息", Story);
+            values.put("editable", 1);
+            values.put("collected", 0);
+            db.update("person",values, "ID = ?", new String[] {ID.toString()});
+            person.close();
+            Toast.makeText(getApplicationContext(),Name,Toast.LENGTH_SHORT).show();
+            return true;
+        }
         return false;
     }//根据输入的信息更新人物信息，返回一个查询成功/否的bool值
 
     private boolean NewCtrInfo(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
-        return false;
+        Cursor person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
+        if (person.moveToFirst()){
+            return false;
+        }
+        else {
+            //db.execSQL("insert into person values(null,\""+Name+"\",\"pin\",\"男\",\"字\",\""+Birthday+"\",\""+Nativeplace+"\",\""+loyal_to+"\",\""+story+"\",\"1\",\"0\")");
+            ContentValues values = new ContentValues();
+            values.put("名字", Name);
+            values.put("拼音", " ");
+            values.put("性别", " ");
+            values.put("字", " ");
+            values.put("生卒", Birthday);
+            values.put("籍贯", Nativeplace);
+            values.put("主效", Loyalto);
+            values.put("信息", Story);
+            values.put("editable", 1);
+            values.put("collected", 0);
+            db.insert("person",null,values);
+        }
+        return true;
     }//根据输入的信息新建人物，返回一个查询成功/否的bool值
 
     @Override

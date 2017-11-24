@@ -1,6 +1,8 @@
 package com.example.abnervictor.tkdic;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -13,10 +15,19 @@ import java.util.Random;
  */
 
 public class SplashActivity extends AppCompatActivity {
+    private DataManager dataManager;
+    private SQLiteDatabase db;
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
+        initDataBase();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -45,7 +56,6 @@ public class SplashActivity extends AppCompatActivity {
             default: country_name = "蜀";break;
         }
 
-        countryInfo countryInfo = new countryInfo(country_name);
 
         MyFontTextView countryName = findViewById(R.id.countryName);//国号
         TextView year = findViewById(R.id.year);//建国～亡国
@@ -53,13 +63,19 @@ public class SplashActivity extends AppCompatActivity {
         TextView nativeplace = findViewById(R.id.nativeplace);//都城
         TextView knownCtr = findViewById(R.id.knownCtr);//知名人物
         TextView story = findViewById(R.id.story);
-        //数据库查询函数
-        countryName.setText(countryInfo.countryName);
-        year.setText(countryInfo.year);
-        leader.setText(countryInfo.leader);
-        nativeplace.setText(countryInfo.nativeplace);
-        knownCtr.setText(countryInfo.knownCtr);
-        story.setText(countryInfo.story);
+
+        Cursor countries = db.rawQuery("select * from country where countryName = \""+countryName+"\"",null);
+        if (countries.moveToFirst()) {
+            countryName.setText(countries.getString(countries.getColumnIndex("countryName")));
+            year.setText(countries.getString(countries.getColumnIndex("year")));
+            leader.setText(countries.getString(countries.getColumnIndex("leader")));
+            nativeplace.setText(countries.getString(countries.getColumnIndex("nativeplace")));
+            knownCtr.setText(countries.getString(countries.getColumnIndex("knownCtr")));
+            story.setText(countries.getString(countries.getColumnIndex("story")));
+        }
+        countries.close();
+
+
     }//
 
 }

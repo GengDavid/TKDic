@@ -1,6 +1,8 @@
 package com.example.abnervictor.tkdic;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -87,11 +89,20 @@ public class PrivateCollectActivity extends AppCompatActivity {
     private View privatecollect_menu;
     private ImageView add_profile_button;
 
+    private DataManager dataManager;
+    private SQLiteDatabase db;
+
+    private void initDataBase(){
+        dataManager = new DataManager(this);
+        db = dataManager.openDatabase("threekindom.db");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.acitivity_privatecollect);
         findView();
+        initDataBase();
         SetListCardWithDeleteRecyclerView();//初始化RecyclerView
         SetNavigationBarListener();
         SetSearchBarListener();
@@ -216,7 +227,7 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 MyFontTextView ctrName = (MyFontTextView) ItemView.getChildAt(0  );//获取到人物卡片中的人物名称View
                 String characterName = ctrName.getText().toString();
                 Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
-                characterInfo ctrInfo = new characterInfo(characterName);
+                characterInfo ctrInfo = new characterInfo(characterName,null, null, false, false, null, null, null);
                 characterCard.initCharacterProfileCard(ctrInfo,defaultPic);//初始化卡片
                 setVisibilty(2);//显示人物详情卡片
             }
@@ -294,31 +305,32 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 String search = Searchbar.getSearchText();//获取搜索框内的文字
                 //根据字符串Update列表
                 //下面使用关键字人物名称生成列表
-                List<characterInfo> characterInfoList = null;
-                //从数据库获取List
-                //charcterInfoList = SQL.getCharacterListFromName(search);
-                //
-                //
-                //用列表初始化人物列表
-                if(characterInfoList != null){
-                    ctr2Listitems.clear();
-                    for (characterInfo c:characterInfoList) {
+                String sql = "select * from person where 名字 like '%"+search+"%'";
+                Cursor person = db.rawQuery(sql,null);
+                ctr2Listitems.clear();
+                if (person.moveToFirst()) {
+                    do {
                         Map<String,Object> listitem = new LinkedHashMap<>();
-                        listitem.put("name",c.profile_name);
-                        listitem.put("loyal_to",c.loyal_to);
-                        listitem.put("pic",c.profile_pic);
+                        listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                        listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                        listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                        listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                        listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                        listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                        listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                        listitem.put("pic",defaultPic);
                         ctr2Listitems.add(listitem);
-                    }
-                    ctr2Adapter.notifyDataSetChanged();//修改列表内容
+                    } while (person.moveToNext());
                 }
-                //
+                person.close();
+                ctr2Adapter.notifyDataSetChanged();
             }
             @Override
             public void afterTextChanged(Editable editable) {
 
             }
         });//监听搜索框内的文本
-    }//搜索框监听器，生成列表，待接入数据库
+    }//搜索框监听器，生成列表，待接入db
 
     private void SetEditCardListener(){
         edit_confirm.setOnClickListener(new View.OnClickListener() {

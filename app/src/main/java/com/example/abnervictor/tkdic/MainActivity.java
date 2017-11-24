@@ -299,25 +299,25 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
                 String search = Searchbar.getSearchText();//获取搜索框内的文字
-                //根据字符串Update列表
-                //下面使用关键字人物名称生成列表
-                List<characterInfo> characterInfoList = null;
-                //从数据库获取List
-                //charcterInfoList = SQL.getCharacterListFromName(search);
-                //
-                //
-                //用列表初始化人物列表
-                if(characterInfoList != null){
-                    ctrListitems.clear();
-                    for (characterInfo c:characterInfoList) {
+                String sql = "select * from person where 名字 like '%"+search+"%'";
+                Cursor person = db.rawQuery(sql,null);
+                ctrListitems.clear();
+                if (person.moveToFirst()) {
+                    do {
                         Map<String,Object> listitem = new LinkedHashMap<>();
-                        listitem.put("name",c.profile_name);
-                        listitem.put("loyal_to",c.loyal_to);
-                        listitem.put("pic",c.profile_pic);
+                        listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                        listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                        listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                        listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                        listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                        listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                        listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                        listitem.put("pic",defaultPic);
                         ctrListitems.add(listitem);
-                    }
-                    ctrAdapter.notifyDataSetChanged();//修改列表内容
+                    } while (person.moveToNext());
                 }
+                person.close();
+                ctrAdapter.notifyDataSetChanged();
                 //
             }
             @Override
@@ -325,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });//监听搜索框内的文本
-    }//搜索框监听器，生成列表，待接入数据库
+    }//搜索框监听器，生成列表
 
     private void SetCountryCardListener(){
         countryAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
@@ -336,26 +336,26 @@ public class MainActivity extends AppCompatActivity {
                 String countryName = country.getText().toString();
                 Toast.makeText(getApplicationContext(),countryName,Toast.LENGTH_SHORT).show();
                 //下面使用关键字国家名称生成列表
-                List<characterInfo> characterInfoList = null;
-                //从数据库获取List
-                //charcterInfoList = SQL.getCharacterListFromCountry(countryName);
-                //
-                //
-                //用列表初始化人物列表
-                if(characterInfoList != null){
-                    ctrListitems.clear();
-                    for (characterInfo c:characterInfoList) {
+                ctrListitems.clear();
+                Cursor person = db.rawQuery("select * from person where 主效 = \""+countryName+"\"",null);
+                if (person.moveToFirst()) {
+                    do {
                         Map<String,Object> listitem = new LinkedHashMap<>();
-                        listitem.put("name",c.profile_name);
-                        listitem.put("loyal_to",c.loyal_to);
-                        listitem.put("pic",c.profile_pic);
+                        listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                        listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                        listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                        listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                        listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                        listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                        listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                        listitem.put("pic",defaultPic);
                         ctrListitems.add(listitem);
-                    }
-                    ctrAdapter.notifyDataSetChanged();//修改列表内容
+                    } while (person.moveToNext());
                 }
+                person.close();
+                ctrAdapter.notifyDataSetChanged();//修改列表内容
                 setVisibilty(2);
             }
-
             @Override
             public void onLongClick(int positon) {
 
@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                 String characterName = ctrName.getText().toString();
                 Toast.makeText(getApplicationContext(),characterName,Toast.LENGTH_SHORT).show();
                 characterInfo ctrInfo;
-                Cursor person = db.rawQuery("select * from person where 名字="+characterName,null);
+                Cursor person = db.rawQuery("select * from person where 名字=\""+characterName+"\"",null);
                 if (person.moveToFirst()) {
                     do {
                         String loyal_to = person.getString(person.getColumnIndex("主效"));
