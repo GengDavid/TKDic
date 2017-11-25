@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -19,10 +21,12 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.TransitionInflater;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
@@ -37,6 +41,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
@@ -152,11 +157,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(this);
 
-        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-        android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
-        android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
-        getWindow().setEnterTransition(slidel);
-        getWindow().setReenterTransition(slidel);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+            android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
+            android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
+            getWindow().setEnterTransition(slidel);
+            getWindow().setReenterTransition(slidel);
+        }
 
         setContentView(R.layout.activity_main);
 
@@ -301,11 +308,28 @@ public class MainActivity extends AppCompatActivity {
                 listitem.put("story",person.getString(person.getColumnIndex("信息")));
                 listitem.put("edit",person.getString(person.getColumnIndex("editable")));
                 listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                String ID = person.getString(person.getColumnIndex("ID"));
+                Bitmap bm = fileHelper.getBitmapFromFolder("picture", ID,"bmp");
                 if(bm!=null){
                     listitem.put("pic",bm);
                 }
-                else listitem.put("pic",defaultPic);
+                else {
+                    String sex = person.getString(person.getColumnIndex("性别"));
+                    if(sex.equals("女")){
+                        Random random = new Random();
+                        int p = random.nextInt(2)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                    else if(sex.equals("男")){
+                        Random random = new Random();
+                        int p = random.nextInt(4)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                }
                 ctrListitems.add(listitem);
             } while (person.moveToNext());
         }
@@ -362,7 +386,23 @@ public class MainActivity extends AppCompatActivity {
                         if(bm!=null){
                             listitem.put("pic",bm);
                         }
-                        else listitem.put("pic",defaultPic);
+                        else {
+                            String sex = person.getString(person.getColumnIndex("性别"));
+                            if(sex.equals("女")){
+                                Random random = new Random();
+                                int p = random.nextInt(2)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                            else if(sex.equals("男")){
+                                Random random = new Random();
+                                int p = random.nextInt(4)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                        }
                         ctrListitems.add(listitem);
                     } while (person.moveToNext());
                 }
@@ -418,7 +458,23 @@ public class MainActivity extends AppCompatActivity {
                         if(bm!=null){
                             listitem.put("pic",bm);
                         }
-                        else listitem.put("pic",defaultPic);
+                        else {
+                            String sex = person.getString(person.getColumnIndex("性别"));
+                            if(sex.equals("女")){
+                                Random random = new Random();
+                                int p = random.nextInt(2)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                            else if(sex.equals("男")){
+                                Random random = new Random();
+                                int p = random.nextInt(4)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                        }
                         ctrListitems.add(listitem);
                     } while (person.moveToNext());
                 }
@@ -458,7 +514,23 @@ public class MainActivity extends AppCompatActivity {
                         if(bm!=null){
                             listitem.put("pic",bm);
                         }
-                        else listitem.put("pic",defaultPic);
+                        else {
+                            String sex = person.getString(person.getColumnIndex("性别"));
+                            if(sex.equals("女")){
+                                Random random = new Random();
+                                int p = random.nextInt(2)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                            else if(sex.equals("男")){
+                                Random random = new Random();
+                                int p = random.nextInt(4)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                        }
                         ctrListitems.add(listitem);
                     } while (person.moveToNext());
                 }

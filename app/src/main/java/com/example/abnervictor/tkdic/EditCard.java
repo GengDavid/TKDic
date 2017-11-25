@@ -99,7 +99,7 @@ public class EditCard extends AppCompatActivity {
         nativeplace.setText(characterinfo.nativeplace);
         story.setText(characterinfo.story);
         profile_pic.setImageBitmap(characterinfo.profile_pic);
-        bitmap = null;
+        bitmap = characterinfo.profile_pic;
         checkLegal();
     }//编辑已有的人物卡片时调用
 
@@ -146,8 +146,11 @@ public class EditCard extends AppCompatActivity {
         else{
             UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story);
         }
-        if (bitmap!=null){
+        if (bitmap!=null && ID != -1){
             fileHelper.copyBitmapToFolder(bitmap,"picture",Integer.toString(ID));//根据人物ID保存图片
+        }
+        else if (ID != -1){
+            fileHelper.copyBitmapToFolder(defaultBitmap,"picture",Integer.toString(ID));//根据人物ID保存图片
         }
         //在数据库建立或修改人物信息
         characterinfo = new characterInfo(Name);
@@ -230,6 +233,12 @@ public class EditCard extends AppCompatActivity {
             values.put("editable", 1);
             values.put("collected", 0);
             db.insert("person",null,values);
+
+            person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
+            if (person.moveToFirst()) {
+                ID = person.getInt(person.getColumnIndex("ID"));
+            }
+
         }
         return true;
     }//根据输入的信息新建人物，返回一个查询成功/否的bool值

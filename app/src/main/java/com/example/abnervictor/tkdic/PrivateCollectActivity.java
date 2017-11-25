@@ -6,24 +6,29 @@ import android.app.ActivityOptions;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.TransitionInflater;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +46,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
@@ -71,6 +77,9 @@ public class PrivateCollectActivity extends AppCompatActivity {
     //for list_card_with_delete
     private SwipeMenuRecyclerView ctr2RecyclerView;
     private RecyclerViewAdapter<Map<String, Object>> ctr2Adapter;
+    private float density;
+    private int width;
+    private int height;//获取屏幕宽高
 
     //for character_profile_card
     private View ctrProfileCard;
@@ -137,11 +146,13 @@ public class PrivateCollectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(this);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
+            android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
+            getWindow().setEnterTransition(slidel);
+            getWindow().setReenterTransition(slidel);
+        }
 
-        android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
-        android.transition.Transition slider = TransitionInflater.from(this).inflateTransition(R.transition.slide1);
-        getWindow().setEnterTransition(slidel);
-        getWindow().setReenterTransition(slidel);
 
         requestcode = (int) getIntent().getExtras().get("requestcode");
         String character =  (String) getIntent().getExtras().get("name");
@@ -173,6 +184,14 @@ public class PrivateCollectActivity extends AppCompatActivity {
             SetMenuListener();
             setVisibilty(1);
         }
+
+
+        Resources resources = this.getResources();
+        DisplayMetrics dm = resources.getDisplayMetrics();
+        density = dm.density;
+        width   = dm.widthPixels;
+        height  = dm.heightPixels;
+
     }
 
     @Override
@@ -192,7 +211,7 @@ public class PrivateCollectActivity extends AppCompatActivity {
 
     private void findView(){
 
-        defaultPic = BitmapFactory.decodeResource(this.getApplicationContext().getResources(),R.drawable.zhuge);
+        defaultPic = BitmapFactory.decodeResource(this.getApplicationContext().getResources(),R.drawable.default_profile_pic);
 
         home = findViewById(R.id.navigation_bar_home);
         folder = findViewById(R.id.navigation_bar_folder);
@@ -256,7 +275,23 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 if(bm!=null){
                     listitem.put("pic",bm);
                 }
-                else listitem.put("pic",defaultPic);
+                else {
+                    String sex = person.getString(person.getColumnIndex("性别"));
+                    if(sex.equals("女")){
+                        Random random = new Random();
+                        int p = random.nextInt(2)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                    else if(sex.equals("男")){
+                        Random random = new Random();
+                        int p = random.nextInt(4)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                }
                 ctr2Listitems.add(listitem);
             } while (person.moveToNext());
         }
@@ -283,7 +318,23 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 if(bm!=null){
                     listitem.put("pic",bm);
                 }
-                else listitem.put("pic",defaultPic);
+                else {
+                    String sex = person.getString(person.getColumnIndex("性别"));
+                    if(sex.equals("女")){
+                        Random random = new Random();
+                        int p = random.nextInt(2)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                    else if(sex.equals("男")){
+                        Random random = new Random();
+                        int p = random.nextInt(4)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                }
                 ctr2Listitems.add(listitem);
             } while (person.moveToNext());
         }
@@ -301,6 +352,11 @@ public class PrivateCollectActivity extends AppCompatActivity {
                 name.setText(M.get("name").toString());
                 MyFontTextView country = holder.getView(R.id.nativeplace);
                 country.setText(M.get("loyal_to").toString());
+
+                ConstraintLayout layout = holder.getView(R.id.list_card_with_delete);
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(width,FrameLayout.LayoutParams.WRAP_CONTENT);
+                layout.setLayoutParams(lp);
+                //根据屏幕宽度动态设置layout宽度
             }
         };
 
@@ -455,7 +511,23 @@ public class PrivateCollectActivity extends AppCompatActivity {
                         if(bm!=null){
                             listitem.put("pic",bm);
                         }
-                        else listitem.put("pic",defaultPic);
+                        else {
+                            String sex = person.getString(person.getColumnIndex("性别"));
+                            if(sex.equals("女")){
+                                Random random = new Random();
+                                int p = random.nextInt(2)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                            else if(sex.equals("男")){
+                                Random random = new Random();
+                                int p = random.nextInt(4)+1;
+                                bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                                if(bm!=null) listitem.put("pic",bm);
+                                else listitem.put("pic", defaultPic);
+                            }
+                        }
                         ctr2Listitems.add(listitem);
                     } while (person.moveToNext());
                 }

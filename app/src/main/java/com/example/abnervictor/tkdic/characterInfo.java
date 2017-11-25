@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 
+import java.util.Random;
+
 /**
  * Created by abnervictor on 2017/11/22.
  */
@@ -61,6 +63,21 @@ public class characterInfo extends AppCompatActivity{
             Bitmap bm = fileHelper.getBitmapFromFolder("picture",Integer.toString(id),"bmp");
             if (bm != null){
                 profile_pic = bm;
+            }
+            else {
+                String sex = person.getString(person.getColumnIndex("性别"));
+                if(sex.equals("女")){
+                    Random random = new Random();
+                    int p = random.nextInt(2)+1;
+                    bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                    if(bm!=null) profile_pic = bm;
+                }
+                else if(sex.equals("男")){
+                    Random random = new Random();
+                    int p = random.nextInt(4)+1;
+                    bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                    if(bm!=null) profile_pic = bm;
+                }
             }
         }
         person.close();

@@ -70,6 +70,7 @@ public class SplashActivity extends AppCompatActivity {
             fileHelper.copyRawToFolder(this,R.raw.p3,"picture","3","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p4,"picture","4","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p5,"picture","5","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p6,"picture","6","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p22,"picture","22","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p23,"picture","23","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p24,"picture","24","bmp");
@@ -88,6 +89,12 @@ public class SplashActivity extends AppCompatActivity {
             fileHelper.copyRawToFolder(this,R.raw.p55,"picture","55","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p56,"picture","56","bmp");
             fileHelper.copyRawToFolder(this,R.raw.p57,"picture","57","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p101,"picture","101","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p102,"picture","102","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p103,"picture","103","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p104,"picture","104","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p201,"picture","201","bmp");
+            fileHelper.copyRawToFolder(this,R.raw.p202,"picture","202","bmp");
         }
         //在这里复制图片和数据库
         new Handler().postDelayed(new Runnable() {

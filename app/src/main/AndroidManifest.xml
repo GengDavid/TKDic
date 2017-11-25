@@ -15,7 +15,6 @@
         android:theme="@style/AppTheme">
 
         <activity android:name=".MainActivity" android:windowSoftInputMode="adjustPan|stateHidden" android:launchMode="singleTask"></activity>
-        <activity android:name=".MarkActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
         <activity android:name=".PrivateCollectActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
 
         <activity android:name=".SplashActivity">
