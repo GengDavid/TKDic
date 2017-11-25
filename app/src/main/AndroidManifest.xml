@@ -14,8 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity" android:windowSoftInputMode="adjustPan|stateHidden" android:launchMode="singleTask"></activity>
-        <activity android:name=".PrivateCollectActivity" android:windowSoftInputMode="adjustPan|stateHidden"></activity>
+        <activity android:name=".MainActivity" android:windowSoftInputMode="adjustPan|stateHidden" android:launchMode="singleTask"/>
+        <activity android:name=".PrivateCollectActivity" android:windowSoftInputMode="adjustPan|stateHidden" android:launchMode="singleTask"/>
 
         <activity android:name=".SplashActivity">
             <intent-filter>

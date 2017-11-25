@@ -124,11 +124,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode==1) {                 //修改人物后
             if (resultCode==2) {
-                String character =  (String) getIntent().getExtras().get("name");
-                //数据库提取
-                //characterInfo ci = new characterInfo();
-                //characterCard.initCharacterProfileCard(ci,defaultPic);
-                setVisibilty(2);
+                String character = (String) data.getExtras().getSerializable("name");
+                characterInfo c = new characterInfo(character);
+                characterCard.initCharacterProfileCard(c,defaultPic);//初始化卡片
+                setVisibilty(3);
             }
         }
     }
@@ -414,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
         privatecollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Navigationbar.UpdateNavigationBarState(3);
+                //Navigationbar.UpdateNavigationBarState(3);
                 Intent intent = new Intent(MainActivity.this,PrivateCollectActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("name","");
@@ -434,53 +433,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
-                String search = Searchbar.getSearchText();//获取搜索框内的文字
-                int state = Navigationbar.getState();
-                String sql = "select * from person where 名字 like '%"+search+"%'";
-                if(state == 2){
-                    sql = "select * from person where 名字 like '%"+search+"%' and collected = 1";
-                }
-
-                Cursor person = db.rawQuery(sql,null);
-                ctrListitems.clear();
-                if (person.moveToFirst()) {
-                    do {
-                        Map<String,Object> listitem = new LinkedHashMap<>();
-                        listitem.put("name", person.getString(person.getColumnIndex("名字")));
-                        listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
-                        listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
-                        listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
-                        listitem.put("story",person.getString(person.getColumnIndex("信息")));
-                        listitem.put("edit",person.getString(person.getColumnIndex("editable")));
-                        listitem.put("mark",person.getString(person.getColumnIndex("collected")));
-                        Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
-                        if(bm!=null){
-                            listitem.put("pic",bm);
-                        }
-                        else {
-                            String sex = person.getString(person.getColumnIndex("性别"));
-                            if(sex.equals("女")){
-                                Random random = new Random();
-                                int p = random.nextInt(2)+1;
-                                bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
-                                if(bm!=null) listitem.put("pic",bm);
-                                else listitem.put("pic", defaultPic);
-                            }
-                            else if(sex.equals("男")){
-                                Random random = new Random();
-                                int p = random.nextInt(4)+1;
-                                bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
-                                if(bm!=null) listitem.put("pic",bm);
-                                else listitem.put("pic", defaultPic);
-                            }
-                        }
-                        ctrListitems.add(listitem);
-                    } while (person.moveToNext());
-                }
-                person.close();
-                ctrAdapter.notifyDataSetChanged();
-                //
+                onSearchBarChanged();
             }
             @Override
             public void afterTextChanged(Editable editable) {
@@ -488,6 +441,56 @@ public class MainActivity extends AppCompatActivity {
             }
         });//监听搜索框内的文本
     }//搜索框监听器，生成列表
+
+    private void onSearchBarChanged(){
+        if(nowVisibilty != 2)setVisibilty(2);//开始输入后，切换到显示内容
+        String search = Searchbar.getSearchText();//获取搜索框内的文字
+        int state = Navigationbar.getState();
+        String sql = "select * from person where 名字 like '%"+search+"%'";
+        if(state == 2){
+            sql = "select * from person where 名字 like '%"+search+"%' and collected = 1";
+        }
+
+        Cursor person = db.rawQuery(sql,null);
+        ctrListitems.clear();
+        if (person.moveToFirst()) {
+            do {
+                Map<String,Object> listitem = new LinkedHashMap<>();
+                listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                if(bm!=null){
+                    listitem.put("pic",bm);
+                }
+                else {
+                    String sex = person.getString(person.getColumnIndex("性别"));
+                    if(sex.equals("女")){
+                        Random random = new Random();
+                        int p = random.nextInt(2)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                    else if(sex.equals("男")){
+                        Random random = new Random();
+                        int p = random.nextInt(4)+1;
+                        bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                        if(bm!=null) listitem.put("pic",bm);
+                        else listitem.put("pic", defaultPic);
+                    }
+                }
+                ctrListitems.add(listitem);
+            } while (person.moveToNext());
+        }
+        person.close();
+        ctrAdapter.notifyDataSetChanged();
+        //
+    }
 
     private void SetCountryCardListener(){
         countryAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
@@ -619,7 +622,6 @@ public class MainActivity extends AppCompatActivity {
         mshowAction3 = AnimationUtils.loadAnimation(this,R.anim.slidein);
         mhiddenAction = AnimationUtils.loadAnimation(this,R.anim.slideout);
     }
-
 
     @Override
     protected void onNewIntent(Intent intent){

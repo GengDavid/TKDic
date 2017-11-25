@@ -145,6 +145,7 @@ public class PrivateCollectActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(this);
+        setContentView(R.layout.acitivity_privatecollect);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             android.transition.Transition slidel = TransitionInflater.from(this).inflateTransition(R.transition.slide);
@@ -153,7 +154,6 @@ public class PrivateCollectActivity extends AppCompatActivity {
             getWindow().setReenterTransition(slidel);
         }
 
-
         requestcode = (int) getIntent().getExtras().get("requestcode");
         String character =  (String) getIntent().getExtras().get("name");
 
@@ -161,30 +161,22 @@ public class PrivateCollectActivity extends AppCompatActivity {
         fileHelper = new FileHelper(path);
         initDataBase();
 
-        setContentView(R.layout.acitivity_privatecollect);
-        if ( requestcode == 1) {
-            findView();
-            SetListCardWithDeleteRecyclerView();//初始化RecyclerView
-            SetNavigationBarListener();
-            SetSearchBarListener();
-            SetEditCardListener();
-            SetProfileCardListener();
-            SetMenuListener();
+        findView();
+        SetListCardWithDeleteRecyclerView();//初始化RecyclerView
+        SetNavigationBarListener();
+        SetSearchBarListener();
+        SetEditCardListener();
+        SetProfileCardListener();
+        SetMenuListener();
+
+        if (requestcode == 1) {
             characterInfo ctrInfo = new characterInfo(character);
             editCard.InitEditCardWithInfo(ctrInfo);
             setVisibilty(3);
         }
         else {
-            findView();
-            SetListCardWithDeleteRecyclerView();//初始化RecyclerView
-            SetNavigationBarListener();
-            SetSearchBarListener();
-            SetEditCardListener();
-            SetProfileCardListener();
-            SetMenuListener();
             setVisibilty(1);
         }
-
 
         Resources resources = this.getResources();
         DisplayMetrics dm = resources.getDisplayMetrics();
@@ -192,6 +184,22 @@ public class PrivateCollectActivity extends AppCompatActivity {
         width   = dm.widthPixels;
         height  = dm.heightPixels;
 
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent){
+        super.onNewIntent(intent);
+        setIntent(intent);
+        requestcode = (int) getIntent().getExtras().get("requestcode");
+        String character =  (String) getIntent().getExtras().get("name");
+        if (requestcode == 1) {
+            characterInfo ctrInfo = new characterInfo(character);
+            editCard.InitEditCardWithInfo(ctrInfo);
+            setVisibilty(3);
+        }
+        else {
+            setVisibilty(1);
+        }
     }
 
     @Override
