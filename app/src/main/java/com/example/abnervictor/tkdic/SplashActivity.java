@@ -133,7 +133,7 @@ public class SplashActivity extends AppCompatActivity {
         TextView knownCtr = findViewById(R.id.knownCtr);//知名人物
         TextView story = findViewById(R.id.story);
 
-        Cursor countries = db.rawQuery("select * from country where countryName = \""+countryName+"\"",null);
+        Cursor countries = db.rawQuery("select * from country where countryName = \""+country_name+"\"",null);
         if (countries.moveToFirst()) {
             countryName.setText(countries.getString(countries.getColumnIndex("countryName")));
             year.setText(countries.getString(countries.getColumnIndex("year")));
