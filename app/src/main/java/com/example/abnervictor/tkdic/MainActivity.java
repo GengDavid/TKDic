@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -21,12 +20,10 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.TransitionInflater;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
@@ -635,6 +632,44 @@ public class MainActivity extends AppCompatActivity {
         }
         else if(navigationState == 2){
             Navigationbar.UpdateNavigationBarState(2);
+            ctrListitems.clear();
+            Cursor person = db.rawQuery("select * from person where collected = \"1\"",null);
+            if (person.moveToFirst()) {
+                do {
+                    Map<String,Object> listitem = new LinkedHashMap<>();
+                    listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                    listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                    listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                    listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                    listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                    listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                    listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                    Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                    if(bm!=null){
+                        listitem.put("pic",bm);
+                    }
+                    else {
+                        String sex = person.getString(person.getColumnIndex("性别"));
+                        if(sex.equals("女")){
+                            Random random = new Random();
+                            int p = random.nextInt(2)+1;
+                            bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                            if(bm!=null) listitem.put("pic",bm);
+                            else listitem.put("pic", defaultPic);
+                        }
+                        else if(sex.equals("男")){
+                            Random random = new Random();
+                            int p = random.nextInt(4)+1;
+                            bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                            if(bm!=null) listitem.put("pic",bm);
+                            else listitem.put("pic", defaultPic);
+                        }
+                    }
+                    ctrListitems.add(listitem);
+                } while (person.moveToNext());
+            }
+            person.close();
+            ctrAdapter.notifyDataSetChanged();
             setVisibilty(2);
         }
     }

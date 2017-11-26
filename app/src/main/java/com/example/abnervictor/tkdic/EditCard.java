@@ -238,6 +238,7 @@ public class EditCard extends AppCompatActivity {
             if (person.moveToFirst()) {
                 ID = person.getInt(person.getColumnIndex("ID"));
             }
+            person.close();
 
         }
         return true;

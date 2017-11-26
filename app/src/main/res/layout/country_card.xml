@@ -21,7 +21,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="10dp"
         android:text="蜀"
-        android:textSize="50sp"
+        android:textSize="75sp"
         android:textColor="@color/Black"
         android:textAlignment="center"
         android:id="@+id/countryName"
