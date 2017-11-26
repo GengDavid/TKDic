@@ -543,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }//点击CountryCard，生成列表，待接入数据库
+    }//点击CountryCard，生成列表
 
     private void SetListCardListener(){
         ctrAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
@@ -579,6 +579,9 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtras(bundle);
                     startActivityForResult(intent,1);
                 }
+                else{
+                    Toast.makeText(MainActivity.this, "该人物不可编辑", Toast.LENGTH_SHORT).show();
+                }
             }
         });//点击编辑按钮做出响应
     }//点击ProfileCard按钮，做出响应
@@ -602,7 +605,6 @@ public class MainActivity extends AppCompatActivity {
                 x2 = event.getX();
                 y2 = event.getY();
                 if(x2 - x1 > 500) {
-                    Toast.makeText(MainActivity.this, "向右滑", Toast.LENGTH_SHORT).show();
                     ctrAdapter.notifyDataSetChanged();
                     setVisibilty(2);
                 }

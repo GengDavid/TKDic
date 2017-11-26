@@ -141,10 +141,10 @@ public class EditCard extends AppCompatActivity {
         String Story = " ";
         if (story.getText().toString().length() > 0) Story = story.getText().toString();
         if (AnewProfileShouldBeMake){
-            NewCtrInfo(Name,Loyalto,Birthday,Nativeplace,Story);
+            if(!NewCtrInfo(Name,Loyalto,Birthday,Nativeplace,Story)) return false;
         }
         else{
-            UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story);
+            if(!UpdateCtrInfoWithName(Name,Loyalto,Birthday,Nativeplace,Story)) return false;
         }
         if (bitmap!=null && ID != -1){
             fileHelper.copyBitmapToFolder(bitmap,"picture",Integer.toString(ID));//根据人物ID保存图片
@@ -199,6 +199,28 @@ public class EditCard extends AppCompatActivity {
     }//check不通过，点击保存按钮时输出错误信息
 
     private boolean UpdateCtrInfoWithName(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
+        Cursor original_person = db.rawQuery("select * from person where ID = \""+ID+"\"",null);
+        if(original_person.moveToFirst()){
+            ContentValues values = new ContentValues();
+            values.put("名字", Name);
+            values.put("拼音", " ");
+            values.put("性别", " ");
+            values.put("字", " ");
+            values.put("生卒", Birthday);
+            values.put("籍贯", Nativeplace);
+            values.put("主效", Loyalto);
+            values.put("信息", Story);
+            values.put("editable", 1);
+            values.put("collected", original_person.getString(original_person.getColumnIndex("collected")));
+            db.update("person",values, "ID = ?", new String[] {Integer.toString(ID)});
+        }
+        original_person.close();
+        return true;
+    }//根据输入的信息更新人物信息，返回一个查询成功/否的bool值
+
+    private boolean NewCtrInfo(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
+        Cursor person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
+        //db.execSQL("insert into person values(null,\""+Name+"\",\"pin\",\"男\",\"字\",\""+Birthday+"\",\""+Nativeplace+"\",\""+loyal_to+"\",\""+story+"\",\"1\",\"0\")");
         ContentValues values = new ContentValues();
         values.put("名字", Name);
         values.put("拼音", " ");
@@ -210,39 +232,17 @@ public class EditCard extends AppCompatActivity {
         values.put("信息", Story);
         values.put("editable", 1);
         values.put("collected", 0);
-        db.update("person",values, "ID = ?", new String[] {Integer.toString(ID)});
-        return true;
-    }//根据输入的信息更新人物信息，返回一个查询成功/否的bool值
+        db.insert("person",null,values);
 
-    private boolean NewCtrInfo(String Name, String Loyalto, String Birthday, String Nativeplace, String Story){
-        Cursor person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
-        if (person.moveToFirst()){
-            return false;
+        person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
+        if (person.moveToFirst()) {
+            ID = person.getInt(person.getColumnIndex("ID"));
         }
-        else {
-            //db.execSQL("insert into person values(null,\""+Name+"\",\"pin\",\"男\",\"字\",\""+Birthday+"\",\""+Nativeplace+"\",\""+loyal_to+"\",\""+story+"\",\"1\",\"0\")");
-            ContentValues values = new ContentValues();
-            values.put("名字", Name);
-            values.put("拼音", " ");
-            values.put("性别", " ");
-            values.put("字", " ");
-            values.put("生卒", Birthday);
-            values.put("籍贯", Nativeplace);
-            values.put("主效", Loyalto);
-            values.put("信息", Story);
-            values.put("editable", 1);
-            values.put("collected", 0);
-            db.insert("person",null,values);
+        person.close();
 
-            person = db.rawQuery("select ID from person where 名字 = \""+Name+"\"",null);
-            if (person.moveToFirst()) {
-                ID = person.getInt(person.getColumnIndex("ID"));
-            }
-            person.close();
 
-        }
         return true;
-    }//根据输入的信息新建人物，返回一个查询成功/否的bool值
+    }//根据输入的信息新建人物，返回一个更新成功/否的bool值
 
 
 }
