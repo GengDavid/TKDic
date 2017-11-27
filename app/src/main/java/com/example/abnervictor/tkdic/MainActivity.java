@@ -543,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }//点击CountryCard，生成列表
+    }//点击CountryCard，生成列表，待接入数据库
 
     private void SetListCardListener(){
         ctrAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
@@ -604,7 +604,45 @@ public class MainActivity extends AppCompatActivity {
                 //当手指离开的时候
                 x2 = event.getX();
                 y2 = event.getY();
-                if(x2 - x1 > 500) {
+                if(x2 - x1 > 1000) {
+                    if (Navigationbar.getState() == 2) {
+                        ctrListitems.clear();
+                        Cursor person = db.rawQuery("select * from person where collected = \"1\"",null);
+                        if (person.moveToFirst()) {
+                            do {
+                                Map<String,Object> listitem = new LinkedHashMap<>();
+                                listitem.put("name", person.getString(person.getColumnIndex("名字")));
+                                listitem.put("loyal_to",person.getString(person.getColumnIndex("主效")));
+                                listitem.put("nativeplace",person.getString(person.getColumnIndex("籍贯")));
+                                listitem.put("birthday",person.getString(person.getColumnIndex("生卒")));
+                                listitem.put("story",person.getString(person.getColumnIndex("信息")));
+                                listitem.put("edit",person.getString(person.getColumnIndex("editable")));
+                                listitem.put("mark",person.getString(person.getColumnIndex("collected")));
+                                Bitmap bm = fileHelper.getBitmapFromFolder("picture", person.getString(person.getColumnIndex("ID")),"bmp");
+                                if(bm!=null){
+                                    listitem.put("pic",bm);
+                                }
+                                else {
+                                    String sex = person.getString(person.getColumnIndex("性别"));
+                                    if(sex.equals("女")){
+                                        Random random = new Random();
+                                        int p = random.nextInt(2)+1;
+                                        bm = fileHelper.getBitmapFromFolder("picture", "20"+Integer.toString(p),"bmp");
+                                        if(bm!=null) listitem.put("pic",bm);
+                                        else listitem.put("pic", defaultPic);
+                                    }
+                                    else if(sex.equals("男")){
+                                        Random random = new Random();
+                                        int p = random.nextInt(4)+1;
+                                        bm = fileHelper.getBitmapFromFolder("picture", "10"+Integer.toString(p),"bmp");
+                                        if(bm!=null) listitem.put("pic",bm);
+                                        else listitem.put("pic", defaultPic);
+                                    }
+                                }
+                                ctrListitems.add(listitem);
+                            } while (person.moveToNext());
+                        }
+                    }
                     ctrAdapter.notifyDataSetChanged();
                     setVisibilty(2);
                 }
